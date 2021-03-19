@@ -2,6 +2,8 @@ import 'package:books_app/pages/LoginPage.dart';
 import 'package:books_app/pages/myBooksPage.dart';
 import 'package:flutter/material.dart';
 import 'package:books_app/pages/home.dart';
+import 'package:books_app/pages/adminPage.dart';
+import 'package:books_app/pages/mainHomePage.dart';
 
 void main() {
   runApp(MyApp());
@@ -21,6 +23,8 @@ class _MyAppState extends State<MyApp> {
         '/login':(context) => LoginPage(),
         '/home': (context) => Home(),
         '/myPage': (context) => myPage(),
+        '/adminPage':(context) => AdminPage(),
+        '/mainHomePage':(context) => mainHomePage(),
       },
     );
   }

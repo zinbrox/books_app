@@ -9,6 +9,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   PlatformFile file;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +40,9 @@ class _HomePageState extends State<HomePage> {
           ElevatedButton(
               onPressed: () {
                 EpubViewer.setConfig(
-                  themeColor: Theme.of(context).primaryColor,
+                  themeColor: Theme
+                      .of(context)
+                      .primaryColor,
                   identifier: "iosBook",
                   scrollDirection: EpubScrollDirection.VERTICAL,
                   allowSharing: true,
@@ -63,7 +66,17 @@ class _HomePageState extends State<HomePage> {
           ),
           ElevatedButton(onPressed: () {
             Navigator.pushNamed(context, '/myPage');
-          }, child: Text("Go to my Page")),
+          }, child: Text("Go to my Page")
+          ),
+          ElevatedButton(onPressed: () {
+            Navigator.pushNamed(context, '/mainHomePage');
+          }, child: Text("Main Home Page")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/adminPage');
+            },
+            child: Text("Admin Page"),
+          ),
         ],
       ),
     );
