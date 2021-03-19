@@ -11,7 +11,7 @@ class myPage extends StatefulWidget {
 
 class _myPageState extends State<myPage> {
   firebase_storage.Reference ref;
-  //PlatformFile file;
+  PlatformFile filePath;
 
   Future<void> getData() async {
     print("In data");
@@ -35,7 +35,7 @@ class _myPageState extends State<myPage> {
   }
 
   Future<void> fileUpload() async {
-    FilePickerResult result = await FilePicker.platform.pickFiles();
+    //FilePickerResult result = await FilePicker.platform.pickFiles();
     firebase_storage.SettableMetadata metadata =
     firebase_storage.SettableMetadata(
       cacheControl: 'max-age=60',
@@ -44,12 +44,31 @@ class _myPageState extends State<myPage> {
         'title': 'Pluto',
       },
     );
+    FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true);
+
+    if(result != null) {
+      List<File> files = result.paths.map((path) => File(path)).toList();
+      for(var file in result.files) {
+        String name = file.name;
+        await firebase_storage.FirebaseStorage.instance
+            .ref('books/$name')
+            .putFile(File(file.path), metadata);
+      }
+    } else {
+      // User canceled the picker
+      print("Error Picking Files");
+    }
+    /*
     if (result != null) {
-      File file = File(result.files.first.path);
+      filePath = result.files.first;
+      String name = filePath.name;
+      File file = File(filePath.path);
       await firebase_storage.FirebaseStorage.instance
-          .ref('uploads/file-to-upload.png')
+          .ref('books/$name')
           .putFile(file, metadata);
     }
+
+     */
   }
 
   @override
