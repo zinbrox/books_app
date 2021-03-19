@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1026803036391",
+    "project_id": "books-app-8d013",
+    "storage_bucket": "books-app-8d013.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026803036391:android:f364fe4f7daebaea057242",
+        "android_client_info": {
+          "package_name": "com.zinbrox.books_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1026803036391-otgdvuu9lrr872rmvqolpa44tkkpk78v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zinbrox.books_app",
+            "certificate_hash": "1159808cd86abe1ea9578d24a3459a04c41b033d"
+          }
+        },
+        {
+          "client_id": "1026803036391-kj8lccu7unahkb9qb40msqpbgesknple.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8PI9jvJmCBJrEs4aTNF1r_TLLejR3X4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1026803036391-kj8lccu7unahkb9qb40msqpbgesknple.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

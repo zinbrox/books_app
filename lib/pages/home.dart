@@ -1,6 +1,5 @@
+import 'package:books_app/pages/HomePage.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:epub_viewer/epub_viewer.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -8,60 +7,45 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  PlatformFile file;
+  int _currentIndex = 0;
+  final tabs=[
+    HomePage(),
+    HomePage(),
+    HomePage(),
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Home"),
-        centerTitle: true,
       ),
-      body: Column(
-        children: <Widget>[
-          ElevatedButton(
-              child: Text("Pick File"),
-              onPressed: () async {
-                print("Pressed File Picker button");
-                FilePickerResult result = await FilePicker.platform.pickFiles();
-                if (result != null) {
-                  file = result.files.first;
-
-                  print(file.name);
-                  print(file.bytes);
-                  print(file.size);
-                  print(file.extension);
-                  print(file.path);
-                } else {
-                  // User canceled the picker
-                  print("Error");
-                }
-              }),
-          ElevatedButton(
-              onPressed: () {
-                EpubViewer.setConfig(
-                  themeColor: Theme.of(context).primaryColor,
-                  identifier: "iosBook",
-                  scrollDirection: EpubScrollDirection.VERTICAL,
-                  allowSharing: true,
-                  enableTts: true,
-                );
-                EpubViewer.open(
-                  file.path,
-                  /*
-                  lastLocation: EpubLocator.fromJson({
-                    "bookId": "2239",
-                    "href": "/OEBPS/ch06.xhtml",
-                    "created": 1539934158390,
-                    "locations": {
-                      "cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"
-                    }
-                  }),// first page will open up if the value is null
-                */
-                );
-              },
-              child: Text("Open Book")),
+      bottomNavigationBar: bottomNavigationBarFunction(),
+      body: tabs[_currentIndex],
+    );
+  }
+  Widget bottomNavigationBarFunction() {
+    return BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            title: Text('Home'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            title: Text('My Books'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            title: Text("Settings"),
+          ),
         ],
-      ),
+      onTap: (index){
+          setState(() {
+            _currentIndex=index;
+          });
+      },
     );
   }
 }

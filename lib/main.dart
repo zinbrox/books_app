@@ -1,3 +1,5 @@
+import 'package:books_app/pages/LoginPage.dart';
+import 'package:books_app/pages/myBooksPage.dart';
 import 'package:flutter/material.dart';
 import 'package:books_app/pages/home.dart';
 
@@ -14,9 +16,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/home',
+      initialRoute: '/login',
       routes: {
+        '/login':(context) => LoginPage(),
         '/home': (context) => Home(),
+        '/myPage': (context) => myPage(),
       },
     );
   }
