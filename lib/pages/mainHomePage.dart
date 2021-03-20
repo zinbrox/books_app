@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:epub_viewer/epub_viewer.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,36 @@ import 'package:path_provider/path_provider.dart';
 class Books {
   String name, title, author, description, genre;
   Books({this.name, this.title, this.author, this.description, this.genre});
+}
+
+class CustomListItem extends StatelessWidget {
+  CustomListItem({this.title, this.author, this.description, this.genre});
+  String title, author, description, genre;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: SizedBox(
+        height: 200,
+        child: Row(
+          children: [
+            Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg"),
+            Expanded(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title),
+                Text('By $author'),
+                Expanded(child: Text('\n$description', overflow: TextOverflow.ellipsis, maxLines: 9,)),
+                Text('Genre: $genre'),
+              ],
+            ))
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class mainHomePage extends StatefulWidget {
@@ -110,7 +141,14 @@ class _mainHomePageState extends State<mainHomePage> {
           itemBuilder: (BuildContext context, int index){
         return GestureDetector(
           onTap: () {},
-          child: Card(
+          child: CustomListItem(
+            title: booksList[index].title,
+            author: booksList[index].author,
+            description: booksList[index].description,
+            genre: booksList[index].genre,
+          ),
+              /*
+          Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15)
             ),
@@ -119,7 +157,6 @@ class _mainHomePageState extends State<mainHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text(booksList[index].name),
                 Text(booksList[index].title),
                 Text(booksList[index].author),
                 Text(booksList[index].description),
@@ -140,6 +177,7 @@ class _mainHomePageState extends State<mainHomePage> {
               ],
             ),
           ),
+          */
         );
       }),
     );
