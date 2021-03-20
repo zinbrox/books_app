@@ -1,11 +1,11 @@
 import 'dart:io';
-
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:epub_viewer/epub_viewer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Books {
   String name, title, author, description, genre;
@@ -13,8 +13,10 @@ class Books {
 }
 
 class CustomListItem extends StatelessWidget {
-  CustomListItem({this.title, this.author, this.description, this.genre});
+  CustomListItem({this.title, this.author, this.description, this.genre, this.name});
   String title, author, description, genre;
+  String name;
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +87,6 @@ class _mainHomePageState extends State<mainHomePage> {
 
   Future<void> downloadFile() async {
     print("In downloadFile()");
-
     Directory appDocDir = await getApplicationDocumentsDirectory();
     File downloadToFile = File('${appDocDir.path}/${booksList[bookIndexSelected].name}');
     Directory downloadsDirectory = await DownloadsPathProvider.downloadsDirectory;
@@ -95,6 +96,23 @@ class _mainHomePageState extends State<mainHomePage> {
         .ref('books/${booksList[bookIndexSelected].name}')
         .writeToFile(downloadToFile);
     print("Downloaded File");
+
+    List<String> books;
+    final prefs = await SharedPreferences.getInstance();
+    books = prefs.getStringList('downloadedBooks') ?? [];
+    print(books);
+
+    String newBookLoc = '${appDocDir.path}/${booksList[bookIndexSelected].name}';
+    if(!books.contains(newBookLoc)) {
+      books.add(newBookLoc);
+      prefs.setStringList('downloadedBooks', books);
+    }
+
+    books = prefs.getStringList('downloadedBooks') ?? [];
+    print(books);
+
+
+
 
     File file = File('${appDocDir.path}/${booksList[bookIndexSelected].name}');
     EpubViewer.setConfig(
@@ -141,43 +159,48 @@ class _mainHomePageState extends State<mainHomePage> {
           itemBuilder: (BuildContext context, int index){
         return GestureDetector(
           onTap: () {},
-          child: CustomListItem(
-            title: booksList[index].title,
-            author: booksList[index].author,
-            description: booksList[index].description,
-            genre: booksList[index].genre,
-          ),
-              /*
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15)
-            ),
-            elevation: 5.0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(booksList[index].title),
-                Text(booksList[index].author),
-                Text(booksList[index].description),
-                Text(booksList[index].genre),
-                PopupMenuButton(itemBuilder: (context) =>
-                    [
-                      PopupMenuItem(
-                          value: 1,
-                          child: Text("Download")
-                      ),
-                    ],
-                    onSelected: (value){
-                      print("Download Selected");
-                      bookIndexSelected = index;
-                      downloadFile();
-                    },
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: SizedBox(
+                height: 250,
+                child: Row(
+                  children: [
+                    Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg", width: 120,),
+                    Expanded(child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(booksList[index].title),
+                        Text('By ${booksList[index].author}'),
+                        Expanded(child: Text('\n${booksList[index].description}', overflow: TextOverflow.ellipsis, maxLines: 9,)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Genre: ${booksList[index].genre}'),
+                            PopupMenuButton(itemBuilder: (context) =>
+                            [
+                              PopupMenuItem(
+                                  value: 1,
+                                  child: Text("Download")
+                              ),
+                            ],
+                              onSelected: (value){
+                                print("Download Selected");
+                                bookIndexSelected = index;
+                                downloadFile();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ))
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-          */
+
         );
       }),
     );
