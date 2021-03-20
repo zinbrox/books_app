@@ -11,6 +11,16 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  FilePickerResult result;
+  final TextEditingController _title = new TextEditingController();
+  final TextEditingController _author = new TextEditingController();
+  final TextEditingController _description = new TextEditingController();
+  final TextEditingController _genre = new TextEditingController();
+  String titleText, authorText, descriptionText, genreText;
+
+  Future<void> pickFile() async {
+    result = await FilePicker.platform.pickFiles(allowMultiple: true);
+  }
 
   Future<void> fileUpload() async {
 
@@ -18,11 +28,13 @@ class _AdminPageState extends State<AdminPage> {
     firebase_storage.SettableMetadata(
       cacheControl: 'max-age=60',
       customMetadata: <String, String>{
-        'description': 'Pluto is a dwarf planet in the Kuiper belt, a ring of bodies beyond the orbit of Neptune. It was the first and the largest Kuiper belt object to be discovered. After Pluto was discovered in 1930, it was declared to be the ninth planet from the Sun',
-        'title': 'Pluto',
+        'title': '$titleText',
+        'author': '$authorText',
+        'description': '$descriptionText',
+        'genre': '$genreText',
       },
     );
-    FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    //FilePickerResult result = await FilePicker.platform.pickFiles(allowMultiple: true);
 
     if(result != null) {
       List<File> files = result.paths.map((path) => File(path)).toList();
@@ -63,10 +75,15 @@ class _AdminPageState extends State<AdminPage> {
         title: Text("Admin Page"),
         centerTitle: true,
       ),
-      body: Column(
+      body: ListView(
         children: <Widget>[
           Text("Whaddup Admin"),
-          ElevatedButton(onPressed: () {fileUpload();}, child: Text("Pick Books and Upload")),
+          ElevatedButton(onPressed: () {pickFile();}, child: Text("Pick File"),),
+          TextFormField(controller: _title, maxLines: 3, onChanged: (value){titleText=_title.text;}, decoration: InputDecoration(hintText: "Title"),),
+          TextFormField(controller: _author, maxLines: 3, onChanged: (value){authorText=_author.text;}, decoration: InputDecoration(hintText: "Author"),),
+          TextFormField(controller: _description, maxLines: 10, onChanged: (value){descriptionText=_description.text;}, decoration: InputDecoration(hintText: "Description"),),
+          TextFormField(controller: _genre, maxLines: 2, onChanged: (value){genreText=_genre.text;}, decoration: InputDecoration(hintText: "Genre"),),
+          ElevatedButton(onPressed: () {fileUpload();}, child: Text("Upload File")),
           ElevatedButton(onPressed: () {showFiles();}, child: Text("Show Files")),
         ],
       ),
