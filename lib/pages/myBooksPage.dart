@@ -1,14 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
-import 'package:epub/epub.dart';
+import 'package:epub/epub.dart' as epub;
 import 'package:epub_viewer/epub_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class downloadedBooks {
-  String name, title;
+  String name, title, author;
   List<String> authors;
   var coverImage;
-  downloadedBooks({this.name, this.title, this.authors, this.coverImage});
+  downloadedBooks({this.name, this.title, this.author, this.authors, this.coverImage});
 }
 
 class myPage extends StatefulWidget {
@@ -30,18 +31,20 @@ class _myPageState extends State<myPage> {
       downloadedBooks items;
       var targetFile = new File(book);
       List<int> bytes = await targetFile.readAsBytes();
-      EpubBook epubBook = await EpubReader.readBook(bytes);
+      epub.EpubBook epubBook = await epub.EpubReader.readBook(bytes);
       String title = epubBook.Title;
       List<String> authors = epubBook.AuthorList;
       print(title);
       print(authors);
       items = downloadedBooks(
         title: epubBook.Title,
+        author: epubBook.Author,
         authors: epubBook.AuthorList,
-        //coverImage: epubBook.CoverImage,
+        coverImage: epubBook.CoverImage,
         name: book,
       );
       downloadedBooksList.add(items);
+      print(epubBook.CoverImage);
     }
     print(downloadedBooksList);
     setState(() {
@@ -76,7 +79,7 @@ class _myPageState extends State<myPage> {
                   }),// first page will open up if the value is null
                 */
     );
-    
+
   }
 
   @override
@@ -94,7 +97,11 @@ class _myPageState extends State<myPage> {
           itemCount: downloadedBooksList.length,
           itemBuilder: (BuildContext context, int index){
         return GestureDetector(
-          onTap: () {},
+          onTap: () {
+            print("Book Selected");
+            bookIndexSelected = index;
+            openBook();
+          },
           child: Card(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -102,32 +109,14 @@ class _myPageState extends State<myPage> {
                 height: 250,
                 child: Row(
                   children: [
-                    //Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg", width: 120,),
+                    Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg", width: 120,),
                     Expanded(child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(downloadedBooksList[index].title),
-                        Text('By ${downloadedBooksList[index].authors}'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            //Text('Genre: ${booksList[index].genre}'),
-                            PopupMenuButton(itemBuilder: (context) =>
-                            [
-                              PopupMenuItem(
-                                  value: 0,
-                                  child: Text("Open Book")
-                              ),
-                            ],
-                              onSelected: (value){
-                                print("Download Selected");
-                                bookIndexSelected = value;
-                                openBook();
-                              },
-                            ),
-                          ],
-                        ),
+                        downloadedBooksList[index].authors.length > 1 ?  Text('By ${downloadedBooksList[index].authors}') : Text('By ${downloadedBooksList[index].author}'),
+                        //Image(image: downloadedBooksList[index].coverImage),
                       ],
                     ))
                   ],
