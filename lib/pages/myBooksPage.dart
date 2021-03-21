@@ -21,6 +21,7 @@ class _myPageState extends State<myPage> {
   List<String> books;
   List<downloadedBooks> downloadedBooksList = [];
   int bookIndexSelected;
+  bool _loading=true;
 
   Future<void> getDownloadedBooks() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,7 +49,7 @@ class _myPageState extends State<myPage> {
     }
     print(downloadedBooksList);
     setState(() {
-
+      _loading=false;
     });
 
   }
@@ -93,7 +94,8 @@ class _myPageState extends State<myPage> {
       appBar: AppBar(
         title: Text("My Page"),
       ),
-      body: ListView.builder(
+      body: _loading ? Center(child: CircularProgressIndicator()) :
+      ListView.builder(
           itemCount: downloadedBooksList.length,
           itemBuilder: (BuildContext context, int index){
         return GestureDetector(
@@ -106,7 +108,7 @@ class _myPageState extends State<myPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               child: SizedBox(
-                height: 250,
+                height: 200,
                 child: Row(
                   children: [
                     Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg", width: 120,),

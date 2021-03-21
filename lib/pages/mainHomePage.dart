@@ -4,6 +4,7 @@ import 'package:epub_viewer/epub_viewer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,33 +112,15 @@ class _mainHomePageState extends State<mainHomePage> {
     books = prefs.getStringList('downloadedBooks') ?? [];
     print(books);
 
-
-
-
-    File file = File('${appDocDir.path}/${booksList[bookIndexSelected].name}');
-    EpubViewer.setConfig(
-      themeColor: Theme
-          .of(context)
-          .primaryColor,
-      identifier: "iosBook",
-      scrollDirection: EpubScrollDirection.VERTICAL,
-      allowSharing: true,
-      enableTts: true,
+    Fluttertoast.showToast(
+        msg: "Downloaded Book!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0
     );
-    EpubViewer.open(
-      file.path,
-      /*
-                  lastLocation: EpubLocator.fromJson({
-                    "bookId": "2239",
-                    "href": "/OEBPS/ch06.xhtml",
-                    "created": 1539934158390,
-                    "locations": {
-                      "cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"
-                    }
-                  }),// first page will open up if the value is null
-                */
-    );
-
 
   }
 
