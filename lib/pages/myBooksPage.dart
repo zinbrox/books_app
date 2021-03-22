@@ -28,15 +28,15 @@ class _myPageState extends State<myPage> {
     books = prefs.getStringList('downloadedBooks') ?? [];
 
     for(var book in books) {
-      print(book);
+      //print(book);
       downloadedBooks items;
       var targetFile = new File(book);
       List<int> bytes = await targetFile.readAsBytes();
       epub.EpubBook epubBook = await epub.EpubReader.readBook(bytes);
       String title = epubBook.Title;
       List<String> authors = epubBook.AuthorList;
-      print(title);
-      print(authors);
+      //print(title);
+      //print(authors);
       items = downloadedBooks(
         title: epubBook.Title,
         author: epubBook.Author,
@@ -45,9 +45,9 @@ class _myPageState extends State<myPage> {
         name: book,
       );
       downloadedBooksList.add(items);
-      print(epubBook.CoverImage);
+      //print(epubBook.CoverImage);
     }
-    print(downloadedBooksList);
+    //print(downloadedBooksList);
     setState(() {
       _loading=false;
     });
@@ -65,7 +65,7 @@ class _myPageState extends State<myPage> {
       allowSharing: true,
       enableTts: true,
     );
-    print(downloadedBooksList[bookIndexSelected].name);
+    //print(downloadedBooksList[bookIndexSelected].name);
     File file = File(downloadedBooksList[bookIndexSelected].name);
     EpubViewer.open(
       downloadedBooksList[bookIndexSelected].name,
