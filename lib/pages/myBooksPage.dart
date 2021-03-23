@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:epub/epub.dart' as epub;
 import 'package:epub_viewer/epub_viewer.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,8 +52,12 @@ class _myPageState extends State<myPage> {
   List<downloadedBooks> downloadedBooksList = [];
   int bookIndexSelected;
   bool _loading = true;
+  String dropdownValue = 'Downloaded';
+  final firestoreInstance = FirebaseFirestore.instance;
+  var firebaseUser = FirebaseAuth.instance.currentUser;
 
   Future<void> getDownloadedBooks() async {
+    downloadedBooksList = [];
     final prefs = await SharedPreferences.getInstance();
     books = prefs.getStringList('downloadedBooks') ?? [];
 
@@ -77,6 +83,8 @@ class _myPageState extends State<myPage> {
     }
     //print(downloadedBooksList);
     setState(() {
+    });
+    setState(() {
       _loading = false;
     });
   }
@@ -86,13 +94,15 @@ class _myPageState extends State<myPage> {
     bookLocation loc = new bookLocation();
     final prefs = await SharedPreferences.getInstance();
     //prefs.setStringList('bookLocations', []);
+    // Get list of Book Last Locations from Shared Preferences
     final rawJson = prefs.getStringList('bookLocations') ?? [];
     print(rawJson.length);
     for (var book in rawJson) {
       print("In Printing Books");
       print(book);
+      // Decode from String to bookLocation Object
       bookLocation temp = bookLocation.fromJson(json.decode(book));
-      //print(temp.name);
+      // If the book last location already exists, remove that String from the saved.
       if (temp.name == downloadedBooksList[bookIndexSelected].name) {
         loc = temp;
         print(loc.bookId);
@@ -114,6 +124,7 @@ class _myPageState extends State<myPage> {
     File file = File(downloadedBooksList[bookIndexSelected].name);
     EpubViewer.open(
       downloadedBooksList[bookIndexSelected].name,
+      // Load the Last Location of book from the object loc (if first time opened, it will start from first page)
       lastLocation: EpubLocator.fromJson({
         "bookId": loc.bookId,
         "href": loc.href,
@@ -125,46 +136,60 @@ class _myPageState extends State<myPage> {
 
     );
 
-
-    int maxLoc = 0;
-    List<String> bookId = [],
-        href = [],
-        cfi = [];
-    List<int> created = [];
     EpubViewer.locatorStream.listen((locator) {
-      //print('LOCATOR: ${EpubLocator.fromJson(jsonDecode(locator))}');
-      //print(jsonDecode(locator)['locations']['cfi']);
-      var decodedLoc = jsonDecode(locator);
-      //print(decodedLoc['locations']['cfi']);
       // convert locator from string to json and save to your database to be retrieved later
+      var decodedLoc = jsonDecode(locator);
+      // remove the String from the saved Shared Preferences (to avoid multiple locations saved when switching between chapters)
       rawJson.remove(json.encode(loc));
+      // Assign the new location values to loc Object
       loc.name = downloadedBooksList[bookIndexSelected].name;
       loc.bookId = decodedLoc['bookId'];
       loc.href = decodedLoc['href'];
       loc.created = decodedLoc['created'];
       loc.cfi = decodedLoc['locations']['cfi'];
       print(loc.name);
+      // Encode the loc object, add it to the original List<String> and save that to the Shared Preferences to fetch later
       String newBookLocation = json.encode(loc);
       rawJson.add(newBookLocation);
       prefs.setStringList('bookLocations', rawJson);
-
     });
-    print("Hellllloooo");
-    print(bookId);
-    /*
-    loc.name = downloadedBooksList[bookIndexSelected].name;
-    loc.bookId = bookId[maxLoc-1];
-    loc.href = href[maxLoc-1];
-    loc.created = created[maxLoc-1];
-    loc.cfi = cfi[maxLoc-1];
-    print(loc.name);
-    String newBookLocation = json.encode(loc);
-    rawJson.add(newBookLocation);
-    prefs.setStringList('bookLocations', rawJson);
+  }
 
-     */
+  Future<void> deleteBook() async {
+    print("In deleteBook()");
+    final prefs = await SharedPreferences.getInstance();
+    final rawJson = prefs.getStringList('bookLocations') ?? [];
+    for (var book in rawJson) {
+      // Decode from String to bookLocation Object
+      bookLocation temp = bookLocation.fromJson(json.decode(book));
+      // If the book last location already exists, remove that String from the saved.
+      if (temp.name == downloadedBooksList[bookIndexSelected].name) {
+        rawJson.remove(book);
+        break;
+      }
+    }
+    File file = File(downloadedBooksList[bookIndexSelected].name);
+    file.delete();
+    print("Book Deleted");
 
+    List<String> books = prefs.getStringList('downloadedBooks') ?? [];
+    var x = downloadedBooksList[bookIndexSelected].name;
+    books.remove(x);
+    prefs.setStringList('downloadedBooks', books);
+    downloadedBooksList.remove(x);
 
+    setState(() {
+      _loading=true;
+    });
+    getDownloadedBooks();
+    setState(() {
+      _loading=false;
+    });
+
+  }
+
+  Future<void> onRefresh() async {
+    setState(() {});
   }
 
   @override
@@ -176,11 +201,39 @@ class _myPageState extends State<myPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("My Page"),
-      ),
-      body: _loading ? Center(child: CircularProgressIndicator()) :
-      ListView.builder(
+        appBar: AppBar(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("My Page"),
+              DropdownButton<String>(
+                value: dropdownValue,
+                onChanged: (String newValue) {
+                  setState(() {
+                    dropdownValue = newValue;
+                  });
+                },
+                items: <String>['Downloaded', 'Want to Read']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        body: dropdownValue=='Downloaded' ? returnDownloadedList() : returnSavedList(),
+
+    );
+  }
+
+  Widget returnDownloadedList() {
+    return _loading ? Center(child: CircularProgressIndicator()) :
+    RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
           itemCount: downloadedBooksList.length,
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
@@ -210,6 +263,21 @@ class _myPageState extends State<myPage> {
                                 : Text(
                                 'By ${downloadedBooksList[index].author}'),
                             //Image(image: downloadedBooksList[index].coverImage),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                        value: 1, child: Text("Delete")),
+                                  ],
+                                  onSelected: (value) {
+                                    bookIndexSelected = index;
+                                    deleteBook();
+                                  },
+                                ),
+                              ],
+                            ),
                           ],
                         ))
                       ],
@@ -220,6 +288,89 @@ class _myPageState extends State<myPage> {
 
             );
           }),
+    );
+  }
+
+  Widget returnSavedList() {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: StreamBuilder(
+        stream: firestoreInstance.collection("users").doc(firebaseUser.uid)
+            .collection("saved")
+            .snapshots(),
+        builder: (context, snapshot) {
+          return snapshot.hasData ?
+          ListView.builder(
+              itemCount: snapshot.data.docs.length,
+              itemBuilder: (context, index){
+                DocumentSnapshot orderData = snapshot.data.docs[index];
+                return GestureDetector(
+                  onTap: () {
+                    print("Tapped");
+                  },
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: SizedBox(
+                        height: 200,
+                        child: Row(
+                          children: [
+                            Image.network(
+                              "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                              width: 120,),
+                            Expanded(child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(orderData.data()['title']),
+                                Text(orderData.data()['author']),
+                                Expanded(
+                                    child: Text(
+                                      '\n${orderData.data()['description']}',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 9,
+                                    )),
+                                //Image(image: downloadedBooksList[index].coverImage),
+                                Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Genre: ${orderData.data()['genre']}'),
+                                    PopupMenuButton(
+                                      itemBuilder: (context) => [
+                                        PopupMenuItem(
+                                            value: 1, child: Text("Download")),
+                                        PopupMenuItem(
+                                            value: 2,
+                                            child: Text("Remove from Want to Read")),
+                                      ],
+                                      onSelected: (value) {
+                                        if (value == 1) {
+                                          print("Download Selected");
+                                          //bookIndexSelected = index;
+                                          //downloadFile();
+                                        } else if (value == 2) {
+                                          print("Remove from Want to Read Selected");
+                                          //bookIndexSelected = index;
+                                          //saveBook();
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+
+                              ],
+                            ))
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              })
+              : Center(child: CircularProgressIndicator(),);
+        },
+      ),
     );
   }
 }

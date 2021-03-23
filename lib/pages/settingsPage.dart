@@ -1,4 +1,5 @@
 import 'package:books_app/styles/color_styles.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +9,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  PlatformFile file;
 
   @override
   void initState() {
@@ -46,6 +48,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 }).toList(),
               ),
             ],
+          ),
+
+
+          ElevatedButton(onPressed: () {
+            Navigator.pushNamed(context, '/myPage');
+          }, child: Text("Go to my Page")
+          ),
+          ElevatedButton(onPressed: () {
+            Navigator.pushNamed(context, '/mainHomePage');
+          }, child: Text("Main Home Page")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/adminPage');
+            },
+            child: Text("Admin Page"),
           ),
         ],
       ),),
