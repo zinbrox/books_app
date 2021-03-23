@@ -9,7 +9,35 @@ class downloadedBooks {
   String name, title, author;
   List<String> authors;
   var coverImage;
-  downloadedBooks({this.name, this.title, this.author, this.authors, this.coverImage});
+
+  downloadedBooks(
+      {this.name, this.title, this.author, this.authors, this.coverImage});
+}
+
+class bookLocation {
+  String name, bookId, href, cfi;
+  int created;
+
+  bookLocation({this.name, this.bookId, this.href, this.created, this.cfi});
+
+  factory bookLocation.fromJson(Map<String, dynamic> parsedJson) {
+    return new bookLocation(
+        name: parsedJson['name'] ?? "",
+        bookId: parsedJson['bookId'] ?? "",
+        href: parsedJson['href'] ?? "",
+        created: parsedJson['created'] ?? "",
+        cfi: parsedJson['cfi'] ?? "");
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "name": this.name,
+      "bookId": this.bookId,
+      "href": this.href,
+      "created": this.created,
+      "cfi": this.cfi,
+    };
+  }
 }
 
 class myPage extends StatefulWidget {
@@ -21,13 +49,13 @@ class _myPageState extends State<myPage> {
   List<String> books;
   List<downloadedBooks> downloadedBooksList = [];
   int bookIndexSelected;
-  bool _loading=true;
+  bool _loading = true;
 
   Future<void> getDownloadedBooks() async {
     final prefs = await SharedPreferences.getInstance();
     books = prefs.getStringList('downloadedBooks') ?? [];
 
-    for(var book in books) {
+    for (var book in books) {
       //print(book);
       downloadedBooks items;
       var targetFile = new File(book);
@@ -49,13 +77,30 @@ class _myPageState extends State<myPage> {
     }
     //print(downloadedBooksList);
     setState(() {
-      _loading=false;
+      _loading = false;
     });
-
   }
 
-  void openBook() {
+  Future<void> openBook() async {
     print("In openBook()");
+    bookLocation loc = new bookLocation();
+    final prefs = await SharedPreferences.getInstance();
+    //prefs.setStringList('bookLocations', []);
+    final rawJson = prefs.getStringList('bookLocations') ?? [];
+    print(rawJson.length);
+    for (var book in rawJson) {
+      print("In Printing Books");
+      print(book);
+      bookLocation temp = bookLocation.fromJson(json.decode(book));
+      //print(temp.name);
+      if (temp.name == downloadedBooksList[bookIndexSelected].name) {
+        loc = temp;
+        print(loc.bookId);
+        rawJson.remove(book);
+        break;
+      }
+    }
+    print(rawJson.length);
     EpubViewer.setConfig(
       themeColor: Theme
           .of(context)
@@ -69,17 +114,56 @@ class _myPageState extends State<myPage> {
     File file = File(downloadedBooksList[bookIndexSelected].name);
     EpubViewer.open(
       downloadedBooksList[bookIndexSelected].name,
-      /*
-                  lastLocation: EpubLocator.fromJson({
-                    "bookId": "2239",
-                    "href": "/OEBPS/ch06.xhtml",
-                    "created": 1539934158390,
-                    "locations": {
-                      "cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"
-                    }
-                  }),// first page will open up if the value is null
-                */
+      lastLocation: EpubLocator.fromJson({
+        "bookId": loc.bookId,
+        "href": loc.href,
+        "created": loc.created,
+        "locations": {
+          "cfi": loc.cfi
+        }
+      }), // first page will open up if the value is null
+
     );
+
+
+    int maxLoc = 0;
+    List<String> bookId = [],
+        href = [],
+        cfi = [];
+    List<int> created = [];
+    EpubViewer.locatorStream.listen((locator) {
+      //print('LOCATOR: ${EpubLocator.fromJson(jsonDecode(locator))}');
+      //print(jsonDecode(locator)['locations']['cfi']);
+      var decodedLoc = jsonDecode(locator);
+      //print(decodedLoc['locations']['cfi']);
+      // convert locator from string to json and save to your database to be retrieved later
+      rawJson.remove(json.encode(loc));
+      loc.name = downloadedBooksList[bookIndexSelected].name;
+      loc.bookId = decodedLoc['bookId'];
+      loc.href = decodedLoc['href'];
+      loc.created = decodedLoc['created'];
+      loc.cfi = decodedLoc['locations']['cfi'];
+      print(loc.name);
+      String newBookLocation = json.encode(loc);
+      rawJson.add(newBookLocation);
+      prefs.setStringList('bookLocations', rawJson);
+
+    });
+    print("Hellllloooo");
+    print(bookId);
+    /*
+    loc.name = downloadedBooksList[bookIndexSelected].name;
+    loc.bookId = bookId[maxLoc-1];
+    loc.href = href[maxLoc-1];
+    loc.created = created[maxLoc-1];
+    loc.cfi = cfi[maxLoc-1];
+    print(loc.name);
+    String newBookLocation = json.encode(loc);
+    rawJson.add(newBookLocation);
+    prefs.setStringList('bookLocations', rawJson);
+
+     */
+
 
   }
 
@@ -88,6 +172,7 @@ class _myPageState extends State<myPage> {
     super.initState();
     getDownloadedBooks();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,38 +182,44 @@ class _myPageState extends State<myPage> {
       body: _loading ? Center(child: CircularProgressIndicator()) :
       ListView.builder(
           itemCount: downloadedBooksList.length,
-          itemBuilder: (BuildContext context, int index){
-        return GestureDetector(
-          onTap: () {
-            print("Book Selected");
-            bookIndexSelected = index;
-            openBook();
-          },
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: SizedBox(
-                height: 200,
-                child: Row(
-                  children: [
-                    Image.network("https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg", width: 120,),
-                    Expanded(child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                print("Book Selected");
+                bookIndexSelected = index;
+                openBook();
+              },
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: SizedBox(
+                    height: 200,
+                    child: Row(
                       children: [
-                        Text(downloadedBooksList[index].title),
-                        downloadedBooksList[index].authors.length > 1 ?  Text('By ${downloadedBooksList[index].authors}') : Text('By ${downloadedBooksList[index].author}'),
-                        //Image(image: downloadedBooksList[index].coverImage),
+                        Image.network(
+                          "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                          width: 120,),
+                        Expanded(child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(downloadedBooksList[index].title),
+                            downloadedBooksList[index].authors.length > 1
+                                ? Text(
+                                'By ${downloadedBooksList[index].authors}')
+                                : Text(
+                                'By ${downloadedBooksList[index].author}'),
+                            //Image(image: downloadedBooksList[index].coverImage),
+                          ],
+                        ))
                       ],
-                    ))
-                  ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
 
-        );
-      }),
+            );
+          }),
     );
   }
 }
