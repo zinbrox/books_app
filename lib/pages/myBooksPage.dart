@@ -5,15 +5,22 @@ import 'package:epub/epub.dart' as epub;
 import 'package:epub_viewer/epub_viewer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as image;
 
 class downloadedBooks {
-  String name, title, author;
+  String name, title, author, coverLoc;
   List<String> authors;
   var coverImage;
 
   downloadedBooks(
-      {this.name, this.title, this.author, this.authors, this.coverImage});
+      {this.name,
+      this.title,
+      this.author,
+      this.authors,
+      this.coverImage,
+      this.coverLoc});
 }
 
 class bookLocation {
@@ -57,7 +64,9 @@ class _myPageState extends State<myPage> {
   var firebaseUser = FirebaseAuth.instance.currentUser;
 
   Future<void> getDownloadedBooks() async {
+    print("In getDownloadedBooks()");
     downloadedBooksList = [];
+    bool coverError = false;
     final prefs = await SharedPreferences.getInstance();
     books = prefs.getStringList('downloadedBooks') ?? [];
 
@@ -71,19 +80,33 @@ class _myPageState extends State<myPage> {
       List<String> authors = epubBook.AuthorList;
       //print(title);
       //print(authors);
+
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      if (await File('${appDocDir.path}/${epubBook.Title}.png').exists()) {
+        print("File exists");
+      } else {
+        try {
+          File('${appDocDir.path}/${epubBook.Title}.png')
+              .writeAsBytesSync(image.encodePng(epubBook.CoverImage));
+        } catch (e) {
+          print("Error Saving Cover Image");
+          print(e);
+          coverError = true;
+        }
+      }
+
       items = downloadedBooks(
         title: epubBook.Title,
         author: epubBook.Author,
         authors: epubBook.AuthorList,
         coverImage: epubBook.CoverImage,
         name: book,
+        coverLoc: coverError ? null : '${appDocDir.path}/${epubBook.Title}.png',
       );
       downloadedBooksList.add(items);
       //print(epubBook.CoverImage);
     }
-    //print(downloadedBooksList);
-    setState(() {
-    });
+
     setState(() {
       _loading = false;
     });
@@ -112,9 +135,7 @@ class _myPageState extends State<myPage> {
     }
     print(rawJson.length);
     EpubViewer.setConfig(
-      themeColor: Theme
-          .of(context)
-          .primaryColor,
+      themeColor: Theme.of(context).primaryColor,
       identifier: "iosBook",
       scrollDirection: EpubScrollDirection.VERTICAL,
       allowSharing: true,
@@ -129,11 +150,8 @@ class _myPageState extends State<myPage> {
         "bookId": loc.bookId,
         "href": loc.href,
         "created": loc.created,
-        "locations": {
-          "cfi": loc.cfi
-        }
+        "locations": {"cfi": loc.cfi}
       }), // first page will open up if the value is null
-
     );
 
     EpubViewer.locatorStream.listen((locator) {
@@ -169,7 +187,30 @@ class _myPageState extends State<myPage> {
       }
     }
     File file = File(downloadedBooksList[bookIndexSelected].name);
-    file.delete();
+    try {
+      file.delete();
+    } catch (e) {
+      print("File couldn't be deleted: ");
+      print(e);
+    }
+
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    if(await File('${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
+        .title}.png').exists()) {
+      file = File(
+          '${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
+              .title}.png');
+      try {
+        file.delete();
+      } catch (e) {
+        print("Cover Image couldn't be deleted: ");
+        print(e);
+      }
+    }
+    else {
+      print("Cover Image File doesn't exist");
+    }
+
     print("Book Deleted");
 
     List<String> books = prefs.getStringList('downloadedBooks') ?? [];
@@ -179,13 +220,12 @@ class _myPageState extends State<myPage> {
     downloadedBooksList.remove(x);
 
     setState(() {
-      _loading=true;
+      _loading = true;
     });
     getDownloadedBooks();
     setState(() {
-      _loading=false;
+      _loading = false;
     });
-
   }
 
   Future<void> onRefresh() async {
@@ -199,176 +239,196 @@ class _myPageState extends State<myPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("My Page"),
-              DropdownButton<String>(
-                value: dropdownValue,
-                onChanged: (String newValue) {
-                  setState(() {
-                    dropdownValue = newValue;
-                  });
-                },
-                items: <String>['Downloaded', 'Want to Read']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("My Page"),
+            DropdownButton<String>(
+              value: dropdownValue,
+              onChanged: (String newValue) {
+                setState(() {
+                  dropdownValue = newValue;
+                });
+              },
+              items: <String>['Downloaded', 'Want to Read']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ],
         ),
-        body: dropdownValue=='Downloaded' ? returnDownloadedList() : returnSavedList(),
-
+      ),
+      body: dropdownValue == 'Downloaded'
+          ? returnDownloadedList()
+          : returnSavedList(),
     );
   }
 
   Widget returnDownloadedList() {
-    return _loading ? Center(child: CircularProgressIndicator()) :
-    RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView.builder(
-          itemCount: downloadedBooksList.length,
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              onTap: () {
-                print("Book Selected");
-                bookIndexSelected = index;
-                openBook();
-              },
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: SizedBox(
-                    height: 200,
-                    child: Row(
-                      children: [
-                        Image.network(
-                          "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
-                          width: 120,),
-                        Expanded(child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(downloadedBooksList[index].title),
-                            downloadedBooksList[index].authors.length > 1
-                                ? Text(
-                                'By ${downloadedBooksList[index].authors}')
-                                : Text(
-                                'By ${downloadedBooksList[index].author}'),
-                            //Image(image: downloadedBooksList[index].coverImage),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                PopupMenuButton(
-                                  itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                        value: 1, child: Text("Delete")),
-                                  ],
-                                  onSelected: (value) {
-                                    bookIndexSelected = index;
-                                    deleteBook();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ))
-                      ],
+    return _loading
+        ? Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView.builder(
+                itemCount: downloadedBooksList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      print("Book Selected");
+                      bookIndexSelected = index;
+                      openBook();
+                    },
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: SizedBox(
+                          height: 200,
+                          child: Row(
+                            children: [
+                              downloadedBooksList[index].coverLoc == null
+                                  ? Image.network(
+                                      "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                      width: 120,
+                                    )
+                                  : Image.file(File(
+                                      downloadedBooksList[index].coverLoc)),
+                              Expanded(
+                                  child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(downloadedBooksList[index].title),
+                                  downloadedBooksList[index].authors.length > 1
+                                      ? Text(
+                                          'By ${downloadedBooksList[index].authors}')
+                                      : Text(
+                                          'By ${downloadedBooksList[index].author}'),
+                                  //Image(image: downloadedBooksList[index].coverImage),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      PopupMenuButton(
+                                        itemBuilder: (context) => [
+                                          PopupMenuItem(
+                                              value: 1, child: Text("Delete")),
+                                        ],
+                                        onSelected: (value) {
+                                          bookIndexSelected = index;
+                                          deleteBook();
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ))
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-
-            );
-          }),
-    );
+                  );
+                }),
+          );
   }
 
   Widget returnSavedList() {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: StreamBuilder(
-        stream: firestoreInstance.collection("users").doc(firebaseUser.uid)
+        stream: firestoreInstance
+            .collection("users")
+            .doc(firebaseUser.uid)
             .collection("saved")
             .snapshots(),
         builder: (context, snapshot) {
-          return snapshot.hasData ?
-          ListView.builder(
-              itemCount: snapshot.data.docs.length,
-              itemBuilder: (context, index){
-                DocumentSnapshot orderData = snapshot.data.docs[index];
-                return GestureDetector(
-                  onTap: () {
-                    print("Tapped");
-                  },
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: SizedBox(
-                        height: 200,
-                        child: Row(
-                          children: [
-                            Image.network(
-                              "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
-                              width: 120,),
-                            Expanded(child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+          return snapshot.hasData
+              ? ListView.builder(
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (context, index) {
+                    DocumentSnapshot orderData = snapshot.data.docs[index];
+                    return GestureDetector(
+                      onTap: () {
+                        print("Tapped");
+                      },
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: SizedBox(
+                            height: 200,
+                            child: Row(
                               children: [
-                                Text(orderData.data()['title']),
-                                Text(orderData.data()['author']),
+                                Image.network(
+                                  "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                  width: 120,
+                                ),
                                 Expanded(
-                                    child: Text(
+                                    child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(orderData.data()['title']),
+                                    Text(orderData.data()['author']),
+                                    Expanded(
+                                        child: Text(
                                       '\n${orderData.data()['description']}',
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 9,
                                     )),
-                                //Image(image: downloadedBooksList[index].coverImage),
-                                Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Genre: ${orderData.data()['genre']}'),
-                                    PopupMenuButton(
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                            value: 1, child: Text("Download")),
-                                        PopupMenuItem(
-                                            value: 2,
-                                            child: Text("Remove from Want to Read")),
+                                    //Image(image: downloadedBooksList[index].coverImage),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                            'Genre: ${orderData.data()['genre']}'),
+                                        PopupMenuButton(
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                                value: 1,
+                                                child: Text("Download")),
+                                            PopupMenuItem(
+                                                value: 2,
+                                                child: Text(
+                                                    "Remove from Want to Read")),
+                                          ],
+                                          onSelected: (value) {
+                                            if (value == 1) {
+                                              print("Download Selected");
+                                              //bookIndexSelected = index;
+                                              //downloadFile();
+                                            } else if (value == 2) {
+                                              print(
+                                                  "Remove from Want to Read Selected");
+                                              //bookIndexSelected = index;
+                                              //saveBook();
+                                            }
+                                          },
+                                        ),
                                       ],
-                                      onSelected: (value) {
-                                        if (value == 1) {
-                                          print("Download Selected");
-                                          //bookIndexSelected = index;
-                                          //downloadFile();
-                                        } else if (value == 2) {
-                                          print("Remove from Want to Read Selected");
-                                          //bookIndexSelected = index;
-                                          //saveBook();
-                                        }
-                                      },
                                     ),
                                   ],
-                                ),
-
+                                ))
                               ],
-                            ))
-                          ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  })
+              : Center(
+                  child: CircularProgressIndicator(),
                 );
-              })
-              : Center(child: CircularProgressIndicator(),);
         },
       ),
     );
