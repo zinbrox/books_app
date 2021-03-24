@@ -143,12 +143,18 @@ class _myPageState extends State<myPage> {
         fontSize: 16.0);
 
     print(rawJson.length);
+
+    String lightMode = prefs.getString('readerMode') ?? "Light";
+    bool light;
+    lightMode=="Light" ? light = false : light = true;
+
     EpubViewer.setConfig(
       themeColor: Theme.of(context).primaryColor,
       identifier: "iosBook",
-      scrollDirection: EpubScrollDirection.VERTICAL,
+      scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
       allowSharing: true,
       enableTts: true,
+      nightMode: light,
     );
     //print(downloadedBooksList[bookIndexSelected].name);
     File file = File(downloadedBooksList[bookIndexSelected].name);

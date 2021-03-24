@@ -2,6 +2,7 @@ import 'package:books_app/styles/color_styles.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -10,11 +11,35 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   PlatformFile file;
+  String lightMode;
+
+  Future<void> getScrollDirection() async {
+    final prefs = await SharedPreferences.getInstance();
+    String light = prefs.getString('readerMode') ?? null;
+    if(light!=null)
+      lightMode=light;
+    else
+      lightMode="Light";
+    setState(() {
+    });
+  }
+
+  Future<void> changeLightMode(String newValue) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('readerMode', newValue);
+  }
 
   @override
   void initState() {
     super.initState();
+    getScrollDirection();
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final _themeChanger = Provider.of<DarkThemeProvider>(context);
@@ -71,6 +96,27 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             title: Text("Feedback"),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
+          ),
+          Row(
+            children: <Widget>[
+              Padding(padding: EdgeInsets.only(left: 15)),
+              Text("Reader Scroll Direction"),
+              Spacer(),
+              DropdownButton<String>(
+                value: lightMode,
+                onChanged: (String newValue){
+                  if(this.mounted) {
+                      setState((){
+                        lightMode=newValue;
+                        changeLightMode(newValue);
+                  });
+                  }
+                },
+                items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
+                  return DropdownMenuItem<String>(value: value, child: Text(value),);
+                }).toList(),
+              )
+            ],
           ),
         ],
       ),),
