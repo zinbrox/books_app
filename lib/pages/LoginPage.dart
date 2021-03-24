@@ -8,10 +8,28 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    signInWithGoogle().then((result) {
+      if (result != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) {
+              return Home();
+            },
+          ),
+        );
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: ElevatedButton(
+      body: Center(child: CircularProgressIndicator(),),
+          /*
+      Center(child: ElevatedButton(
         child: Text("Log In"),
         onPressed: (){
           signInWithGoogle().then((result) {
@@ -25,8 +43,10 @@ class _LoginPageState extends State<LoginPage> {
               );
             }
           });
+
         },
       ),),
+      */
     );
   }
 }

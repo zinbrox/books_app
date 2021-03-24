@@ -64,6 +64,14 @@ class _SettingsPageState extends State<SettingsPage> {
             },
             child: Text("Admin Page"),
           ),
+          ListTile(
+            title: Text("Request Books"),
+            onTap: () => Navigator.pushNamed(context, '/requestsPage'),
+          ),
+          ListTile(
+            title: Text("Feedback"),
+            onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
+          ),
         ],
       ),),
     );

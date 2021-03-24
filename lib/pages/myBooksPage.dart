@@ -5,6 +5,7 @@ import 'package:epub/epub.dart' as epub;
 import 'package:epub_viewer/epub_viewer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as image;
@@ -133,6 +134,14 @@ class _myPageState extends State<myPage> {
         break;
       }
     }
+
+    Fluttertoast.showToast(
+        msg: "Opening Book...",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0);
+
     print(rawJson.length);
     EpubViewer.setConfig(
       themeColor: Theme.of(context).primaryColor,

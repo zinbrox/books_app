@@ -1,5 +1,6 @@
 import 'package:books_app/pages/LoginPage.dart';
 import 'package:books_app/pages/myBooksPage.dart';
+import 'package:books_app/pages/requestFeedbackPage.dart';
 import 'package:books_app/styles/color_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:books_app/pages/home.dart';
@@ -44,6 +45,8 @@ class _MyAppState extends State<MyApp> {
               '/myPage': (context) => myPage(),
               '/adminPage': (context) => AdminPage(),
               '/mainHomePage': (context) => mainHomePage(),
+              '/requestsPage':(context) => requestPage(),
+              '/feedbackPage':(context) => feedbackPage(),
             },
           );
         },
