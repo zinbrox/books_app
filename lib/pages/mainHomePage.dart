@@ -11,11 +11,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
   String name, title, author, description, genre;
-  int size;
+  double size;
   DateTime timeCreated;
 
   Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated});
 }
+
 
 class mainHomePage extends StatefulWidget {
   @override
@@ -48,6 +49,9 @@ class _mainHomePageState extends State<mainHomePage> {
   ];
   List<String> selectedCategories=[];
   List<bool> selectedCheck=[];
+  Map sortBy = {'Alphabetical': 0, 'Reverse Alphabetical': 1, 'Date Added': 2, 'Size (Low to High)': 3, 'Size (High to Low)' : 4};
+  int _radioValue=2;
+
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -77,7 +81,7 @@ class _mainHomePageState extends State<mainHomePage> {
         author: metadata.customMetadata['author'],
         description: metadata.customMetadata['description'],
         genre: metadata.customMetadata['genre'],
-        size: metadata.size,
+        size: double.parse(((metadata.size)/1000000).toStringAsFixed(2)),
         timeCreated: metadata.timeCreated,
       );
       booksList.add(book);
@@ -227,10 +231,63 @@ class _mainHomePageState extends State<mainHomePage> {
 
   }
 
+  onSortChanged() async {
+    await showModalBottomSheet(
+    context: context,
+        builder: (context){
+      return StatefulBuilder(builder: (context, setState){
+        return Container(
+          child: Container(
+            height: 300,
+            decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10)),
+            ),
+            child: ListView.builder(
+              itemCount: sortBy.length,
+                itemBuilder: (BuildContext context, index){
+                return ListTile(
+                  title: Text(sortBy.keys.toList()[index]),
+                  trailing: Radio(
+                    value: sortBy.values.toList()[index],
+                    groupValue: _radioValue,
+                    onChanged: (value){
+                      print("Changed");
+                      setState(() {
+                        _radioValue=value;
+                      });
+                    },
+                  ),
+                );
+
+            })
+        ),
+        );
+        }
+      );
+
+        });
+    setState(() {
+      switch(_radioValue) {
+        case 0: searchBooksList.sort((a,b) => a.title.compareTo(b.title)); break;
+        case 1: searchBooksList.sort((b,a) => a.title.compareTo(b.title)); break;
+        case 2: searchBooksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated)); break;
+        case 3: searchBooksList.sort((a,b) => a.size.compareTo(b.size)); break;
+        case 4: searchBooksList.sort((b,a) => a.size.compareTo(b.size)); break;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     showFiles();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -263,7 +320,9 @@ class _mainHomePageState extends State<mainHomePage> {
                     },
                       child: Text("Filter")),
                   ElevatedButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      onSortChanged();
+                    },
                       child: Text("Sort")),
                 ],
               ),
@@ -297,7 +356,7 @@ class _mainHomePageState extends State<mainHomePage> {
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 9,
                                       )),
-                                      Text((searchBooksList[index].size/1000000).toString() + 'MB'),
+                                      Text(searchBooksList[index].size.toString() + 'MB'),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,

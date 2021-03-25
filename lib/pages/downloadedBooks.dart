@@ -9,7 +9,7 @@ class _downloadedBooksPageState extends State<downloadedBooksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Image(),
+      body: Center(child: Text("Hello"),),
     );
   }
 }
