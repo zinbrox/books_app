@@ -13,8 +13,9 @@ class Books {
   String name, title, author, description, genre;
   double size;
   DateTime timeCreated;
+  bool expanded;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded});
 }
 
 
@@ -52,6 +53,9 @@ class _mainHomePageState extends State<mainHomePage> {
   Map sortBy = {'Alphabetical': 0, 'Reverse Alphabetical': 1, 'Date Added': 2, 'Size (Low to High)': 3, 'Size (High to Low)' : 4};
   int _radioValue=2;
 
+  double containerHeight;
+  bool expanded = false;
+
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -83,6 +87,7 @@ class _mainHomePageState extends State<mainHomePage> {
         genre: metadata.customMetadata['genre'],
         size: double.parse(((metadata.size)/1000000).toStringAsFixed(2)),
         timeCreated: metadata.timeCreated,
+        expanded: false,
       );
       booksList.add(book);
     }
@@ -292,13 +297,23 @@ class _mainHomePageState extends State<mainHomePage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Main Home Page"),
         centerTitle: true,
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: Image(image: AssetImage("assets/CatReadingGif.gif"),)),
+              Text("Loading Books..."),
+              CircularProgressIndicator(),
+            ],
+          ))
           : Column(
             children: [
               Padding(
@@ -330,18 +345,26 @@ class _mainHomePageState extends State<mainHomePage> {
                 child: ListView.builder(
                     itemCount: searchBooksList.length,
                     itemBuilder: (BuildContext context, int index) {
+                      containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * 0.50
+                          : MediaQuery.of(context).size.height * 0.30;
                       return GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          setState(() {
+                            searchBooksList[index].expanded = !searchBooksList[index].expanded;
+                          });
+                        },
                         child: Card(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10.0),
-                            child: SizedBox(
-                              height: 250,
+                            child: AnimatedContainer(
+                              curve: Curves.easeOut,
+                              duration: Duration(milliseconds: 400),
+                              height: containerHeight,
                               child: Row(
                                 children: [
                                   Image.network(
                                     "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
-                                    width: 120,
+                                    width: 100,
                                   ),
                                   Expanded(
                                       child: Column(
@@ -355,7 +378,8 @@ class _mainHomePageState extends State<mainHomePage> {
                                         '\n${searchBooksList[index].description}',
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 9,
-                                      )),
+                                      )
+                                      ),
                                       Text(searchBooksList[index].size.toString() + 'MB'),
                                       Row(
                                         mainAxisAlignment:
