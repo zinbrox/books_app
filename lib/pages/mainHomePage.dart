@@ -28,12 +28,38 @@ class _mainHomePageState extends State<mainHomePage> {
   int bookIndexSelected;
   final firestoreInstance = FirebaseFirestore.instance;
   TextEditingController _searchController = TextEditingController();
+  List<String> categories = [
+    'Art',
+    'Business',
+    'Children'
+    'Classics',
+    'Crime',
+    'Fantasy',
+    'Fiction',
+    'History',
+    'Horror',
+    'Humour & Comedy',
+    'Memoir & Autobiography',
+    'Mystery & Thriller',
+    'Nonfiction',
+    'Science Fiction',
+    'Science & Technology',
+    'Young Adult',
+  ];
+  List<String> selectedCategories=[];
+  List<bool> selectedCheck=[];
 
   Future<void> showFiles() async {
     print("In showFiles");
     Books book;
     firebase_storage.ListResult result =
         await firebase_storage.FirebaseStorage.instance.ref('books/').listAll();
+
+
+    for(var i in categories) {
+      selectedCheck.add(false);
+    }
+
 
     result.items.forEach((firebase_storage.Reference ref) {
       //print('Found file: ${ref.name}');
@@ -140,11 +166,65 @@ class _mainHomePageState extends State<mainHomePage> {
     }
   }
 
-  onItemChanged(String value) {
+  onBookSearch(String value) {
     print("In onItemChanged");
     setState(() {
         searchBooksList = booksList.where((element) => element.title.toLowerCase().contains(value.toLowerCase())).toList();
     });
+  }
+
+  onFilterChanged() async {
+    await showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(builder: (context, setState) {
+        return AlertDialog(
+          title: Text('Select Categories'),
+          content: Container(
+            height: 300,
+            width: 300,
+            child: ListView.builder(
+                itemCount: categories.length,
+                itemBuilder: (BuildContext context, index) {
+                  return CheckboxListTile(
+                      title: Text(categories[index]),
+                      value: selectedCheck[index],
+                      onChanged: (bool value) {
+                        print("Value: $value");
+                        if (value)
+                          selectedCategories.add(categories[index]);
+                        else
+                          selectedCategories.remove(categories[index]);
+                        setState(() {
+                          selectedCheck[index] = value;
+                        });
+                        print("SelectedCheck[index]: ${selectedCheck[index]}");
+                        print(selectedCategories);
+                      });
+                }),
+          ),
+          actions: [
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    searchBooksList = booksList.where((element) =>
+                        selectedCategories.contains(element.genre)).toList();
+                    if(searchBooksList.isEmpty)
+                      searchBooksList = booksList;
+                  });
+                },
+                child: Text("Apply"))
+          ],
+        );
+      }
+      );
+    }
+
+      );
+    setState(() {
+    });
+
   }
 
   @override
@@ -171,8 +251,21 @@ class _mainHomePageState extends State<mainHomePage> {
                   decoration: InputDecoration(
                     hintText: "Search Books"
                   ),
-                  onChanged: onItemChanged,
+                  onChanged: onBookSearch,
                 ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      onFilterChanged();
+                    },
+                      child: Text("Filter")),
+                  ElevatedButton(
+                    onPressed: (){},
+                      child: Text("Sort")),
+                ],
               ),
               Expanded(
                 child: ListView.builder(
