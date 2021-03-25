@@ -11,8 +11,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
   String name, title, author, description, genre;
+  int size;
+  DateTime timeCreated;
 
-  Books({this.name, this.title, this.author, this.description, this.genre});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated});
 }
 
 class mainHomePage extends StatefulWidget {
@@ -21,10 +23,11 @@ class mainHomePage extends StatefulWidget {
 }
 
 class _mainHomePageState extends State<mainHomePage> {
-  List<Books> booksList = [];
+  List<Books> booksList = [], searchBooksList=[];
   bool _loading = true;
   int bookIndexSelected;
   final firestoreInstance = FirebaseFirestore.instance;
+  TextEditingController _searchController = TextEditingController();
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -41,16 +44,23 @@ class _mainHomePageState extends State<mainHomePage> {
           .ref('${item.fullPath}')
           .getMetadata();
       //print(metadata.customMetadata['title']);
+
       book = new Books(
         name: item.name,
         title: metadata.customMetadata['title'],
         author: metadata.customMetadata['author'],
         description: metadata.customMetadata['description'],
         genre: metadata.customMetadata['genre'],
+        size: metadata.size,
+        timeCreated: metadata.timeCreated,
       );
       booksList.add(book);
     }
-    //for (var i in booksList) print(i.description);
+
+    // Sort the books according to Time Created (time added to cloud server)
+    booksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated));
+    searchBooksList = booksList;
+
     setState(() {
       _loading = false;
     });
@@ -60,13 +70,13 @@ class _mainHomePageState extends State<mainHomePage> {
     print("In downloadFile()");
     Directory appDocDir = await getApplicationDocumentsDirectory();
     File downloadToFile =
-        File('${appDocDir.path}/${booksList[bookIndexSelected].name}');
+        File('${appDocDir.path}/${searchBooksList[bookIndexSelected].name}');
     Directory downloadsDirectory =
         await DownloadsPathProvider.downloadsDirectory;
     //print(downloadsDirectory);
     print(appDocDir.path);
     await firebase_storage.FirebaseStorage.instance
-        .ref('books/${booksList[bookIndexSelected].name}')
+        .ref('books/${searchBooksList[bookIndexSelected].name}')
         .writeToFile(downloadToFile);
     print("Downloaded File");
 
@@ -76,7 +86,7 @@ class _mainHomePageState extends State<mainHomePage> {
     print(books);
 
     String newBookLoc =
-        '${appDocDir.path}/${booksList[bookIndexSelected].name}';
+        '${appDocDir.path}/${searchBooksList[bookIndexSelected].name}';
     if (!books.contains(newBookLoc)) {
       books.add(newBookLoc);
       prefs.setStringList('downloadedBooks', books);
@@ -101,7 +111,7 @@ class _mainHomePageState extends State<mainHomePage> {
       querySnapshot.docs.forEach((element) {
         firestoreInstance.collection("users").doc(firebaseUser.uid).collection("saved").get().then((querySnapshot){
           querySnapshot.docs.forEach((element) {
-            if(element.data()['name'] == booksList[bookIndexSelected].name)
+            if(element.data()['name'] == searchBooksList[bookIndexSelected].name)
               existingCheck=true;
           });
         });
@@ -113,11 +123,11 @@ class _mainHomePageState extends State<mainHomePage> {
           .doc(firebaseUser.uid)
           .collection("saved")
           .add({
-        "name": booksList[bookIndexSelected].name,
-        "title": booksList[bookIndexSelected].title,
-        "author": booksList[bookIndexSelected].author,
-        "description": booksList[bookIndexSelected].description,
-        "genre": booksList[bookIndexSelected].genre,
+        "name": searchBooksList[bookIndexSelected].name,
+        "title": searchBooksList[bookIndexSelected].title,
+        "author": searchBooksList[bookIndexSelected].author,
+        "description": searchBooksList[bookIndexSelected].description,
+        "genre": searchBooksList[bookIndexSelected].genre,
       }).then((_) {
         final snackBar = SnackBar(content: Text('Added to Want to Read!'));
         Scaffold.of(context).showSnackBar(snackBar);
@@ -128,6 +138,13 @@ class _mainHomePageState extends State<mainHomePage> {
       final snackBar = SnackBar(content: Text("Book already exists in Want to Read"));
       Scaffold.of(context).showSnackBar(snackBar);
     }
+  }
+
+  onItemChanged(String value) {
+    print("In onItemChanged");
+    setState(() {
+        searchBooksList = booksList.where((element) => element.title.toLowerCase().contains(value.toLowerCase())).toList();
+    });
   }
 
   @override
@@ -145,71 +162,88 @@ class _mainHomePageState extends State<mainHomePage> {
       ),
       body: _loading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: booksList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {},
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: SizedBox(
-                        height: 250,
-                        child: Row(
-                          children: [
-                            Image.network(
-                              "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
-                              width: 120,
-                            ),
-                            Expanded(
-                                child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(booksList[index].title),
-                                Text('By ${booksList[index].author}'),
-                                Expanded(
-                                    child: Text(
-                                  '\n${booksList[index].description}',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 9,
-                                )),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Genre: ${booksList[index].genre}'),
-                                    PopupMenuButton(
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                            value: 1, child: Text("Download")),
-                                        PopupMenuItem(
-                                            value: 2,
-                                            child: Text("Want to Read")),
-                                      ],
-                                      onSelected: (value) {
-                                        if (value == 1) {
-                                          print("Download Selected");
-                                          bookIndexSelected = index;
-                                          downloadFile();
-                                        } else if (value == 2) {
-                                          print("Want to Read Selected");
-                                          bookIndexSelected = index;
-                                          saveBook();
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ))
-                          ],
-                        ),
-                      ),
-                    ),
+          : Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: TextFormField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search Books"
                   ),
-                );
-              }),
+                  onChanged: onItemChanged,
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                    itemCount: searchBooksList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return GestureDetector(
+                        onTap: () {},
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: SizedBox(
+                              height: 250,
+                              child: Row(
+                                children: [
+                                  Image.network(
+                                    "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                    width: 120,
+                                  ),
+                                  Expanded(
+                                      child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(searchBooksList[index].title),
+                                      Text('By ${searchBooksList[index].author}'),
+                                      Expanded(
+                                          child: Text(
+                                        '\n${searchBooksList[index].description}',
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 9,
+                                      )),
+                                      Text((searchBooksList[index].size/1000000).toString() + 'MB'),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Genre: ${searchBooksList[index].genre}'),
+                                          PopupMenuButton(
+                                            itemBuilder: (context) => [
+                                              PopupMenuItem(
+                                                  value: 1, child: Text("Download")),
+                                              PopupMenuItem(
+                                                  value: 2,
+                                                  child: Text("Want to Read")),
+                                            ],
+                                            onSelected: (value) {
+                                              if (value == 1) {
+                                                print("Download Selected");
+                                                bookIndexSelected = index;
+                                                downloadFile();
+                                              } else if (value == 2) {
+                                                print("Want to Read Selected");
+                                                bookIndexSelected = index;
+                                                saveBook();
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ))
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+            ],
+          ),
     );
   }
 }
