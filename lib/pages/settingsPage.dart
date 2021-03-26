@@ -49,17 +49,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text("Settings"),
-        centerTitle: true,
       ),
       body: Center(child: Column(
         children: <Widget>[
           Text("Hello"),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Theme"),
-              Text(_themeChanger.darkTheme.toString()),
+              Padding(padding: EdgeInsets.only(left: 15)),
+              Text("App Theme"),
+              Spacer(),
               DropdownButton<String>(
                 value: dropdownValue,
                 onChanged: (String newValue){
@@ -74,7 +74,27 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
-
+          Row(
+            children: <Widget>[
+              Padding(padding: EdgeInsets.only(left: 15)),
+              Text("Reader Theme"),
+              Spacer(),
+              DropdownButton<String>(
+                value: lightMode,
+                onChanged: (String newValue){
+                  if(this.mounted) {
+                    setState((){
+                      lightMode=newValue;
+                      changeLightMode(newValue);
+                    });
+                  }
+                },
+                items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
+                  return DropdownMenuItem<String>(value: value, child: Text(value),);
+                }).toList(),
+              )
+            ],
+          ),
 
           ElevatedButton(onPressed: () {
             Navigator.pushNamed(context, '/myPage');
@@ -96,27 +116,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             title: Text("Feedback"),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
-          ),
-          Row(
-            children: <Widget>[
-              Padding(padding: EdgeInsets.only(left: 15)),
-              Text("Reader Scroll Direction"),
-              Spacer(),
-              DropdownButton<String>(
-                value: lightMode,
-                onChanged: (String newValue){
-                  if(this.mounted) {
-                      setState((){
-                        lightMode=newValue;
-                        changeLightMode(newValue);
-                  });
-                  }
-                },
-                items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
-                  return DropdownMenuItem<String>(value: value, child: Text(value),);
-                }).toList(),
-              )
-            ],
           ),
         ],
       ),),

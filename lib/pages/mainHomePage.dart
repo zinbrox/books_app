@@ -13,9 +13,10 @@ class Books {
   String name, title, author, description, genre;
   double size;
   DateTime timeCreated;
-  bool expanded;
+  //expanded- Whether the Animated Container is expanded or now, downloadExists - to check whether the shown book is already downloaded or not
+  bool expanded, downloadExists;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
 }
 
 
@@ -25,11 +26,16 @@ class mainHomePage extends StatefulWidget {
 }
 
 class _mainHomePageState extends State<mainHomePage> {
+  // booksList is origianl list, searchBooksList is the list after filtering and/or sorting
   List<Books> booksList = [], searchBooksList=[];
   bool _loading = true;
-  int bookIndexSelected;
+  int bookIndexSelected; // Book index Selected for download
   final firestoreInstance = FirebaseFirestore.instance;
+
   TextEditingController _searchController = TextEditingController();
+  bool _searchVisible=false;
+
+  // For Filtering
   List<String> categories = [
     'Art',
     'Business',
@@ -50,11 +56,11 @@ class _mainHomePageState extends State<mainHomePage> {
   ];
   List<String> selectedCategories=[];
   List<bool> selectedCheck=[];
-  Map sortBy = {'Alphabetical': 0, 'Reverse Alphabetical': 1, 'Date Added': 2, 'Size (Low to High)': 3, 'Size (High to Low)' : 4};
-  int _radioValue=2;
 
-  double containerHeight;
-  bool expanded = false;
+  // For Sorting
+  Map sortBy = {'Alphabetical': 0, 'Reverse Alphabetical': 1, 'Date Added': 2, 'Size (Low to High)': 3, 'Size (High to Low)' : 4};
+  int _radioValue=2; //Default Value of Sort is Date Added
+
 
 
   Future<void> showFiles() async {
@@ -68,18 +74,19 @@ class _mainHomePageState extends State<mainHomePage> {
       selectedCheck.add(false);
     }
 
-
-    result.items.forEach((firebase_storage.Reference ref) {
-      //print('Found file: ${ref.name}');
-    });
     for (var item in result.items) {
       firebase_storage.FullMetadata metadata = await firebase_storage
           .FirebaseStorage.instance
           .ref('${item.fullPath}')
           .getMetadata();
-      //print(metadata.customMetadata['title']);
 
-      book = new Books(
+      bool downloadExists=false;
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      if(await File('${appDocDir.path}/${item.name}').exists()) {
+        downloadExists=true;
+      }
+
+        book = new Books(
         name: item.name,
         title: metadata.customMetadata['title'],
         author: metadata.customMetadata['author'],
@@ -88,6 +95,7 @@ class _mainHomePageState extends State<mainHomePage> {
         size: double.parse(((metadata.size)/1000000).toStringAsFixed(2)),
         timeCreated: metadata.timeCreated,
         expanded: false,
+          downloadExists: downloadExists,
       );
       booksList.add(book);
     }
@@ -152,7 +160,7 @@ class _mainHomePageState extends State<mainHomePage> {
         });
       });
     });
-    if(existingCheck) {
+    if(!existingCheck) {
       firestoreInstance
           .collection("users")
           .doc(firebaseUser.uid)
@@ -175,6 +183,7 @@ class _mainHomePageState extends State<mainHomePage> {
     }
   }
 
+  // searchBooksList only contains those books which have searched keyword in it
   onBookSearch(String value) {
     print("In onItemChanged");
     setState(() {
@@ -284,6 +293,7 @@ class _mainHomePageState extends State<mainHomePage> {
     });
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -300,9 +310,19 @@ class _mainHomePageState extends State<mainHomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text("Main Home Page"),
-        centerTitle: true,
-      ),
+          actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  setState(() {
+                    _searchVisible=!_searchVisible;
+                  });
+                },
+              ),
+              ],
+           ),
       body: _loading
           ? Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -310,42 +330,78 @@ class _mainHomePageState extends State<mainHomePage> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15),
                   child: Image(image: AssetImage("assets/CatReadingGif.gif"),)),
+              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
               Text("Loading Books..."),
+              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
               CircularProgressIndicator(),
             ],
           ))
           : Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: TextFormField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: "Search Books"
+              Visibility(
+                visible: _searchVisible,
+                maintainSize: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: TextFormField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search Books"
+                    ),
+                    onChanged: onBookSearch,
                   ),
-                  onChanged: onBookSearch,
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      onFilterChanged();
-                    },
-                      child: Text("Filter")),
-                  ElevatedButton(
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onFilterChanged();
+                      },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.filter_list),
+                              Text("Filter"),
+                            ],
+                          ),
+                        )),
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
                     onPressed: (){
                       onSortChanged();
                     },
-                      child: Text("Sort")),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.sort),
+                            Text("Sort"),
+                          ],
+                        ),
+                      )), ),
                 ],
               ),
               Expanded(
                 child: ListView.builder(
                     itemCount: searchBooksList.length,
                     itemBuilder: (BuildContext context, int index) {
-                      containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * 0.50
+                      double len;
+                      if(searchBooksList[index].description.length < 500)
+                        len=0.4;
+                      else if(searchBooksList[index].description.length > 500 && searchBooksList[index].description.length<1000)
+                        len=0.65;
+                      else if(searchBooksList[index].description.length > 1000 && searchBooksList[index].description.length<1500)
+                        len=1.0;
+                      else if(searchBooksList[index].description.length>1500)
+                        len=1.2;
+                      double containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * len
                           : MediaQuery.of(context).size.height * 0.30;
                       return GestureDetector(
                         onTap: () {
@@ -362,10 +418,12 @@ class _mainHomePageState extends State<mainHomePage> {
                               height: containerHeight,
                               child: Row(
                                 children: [
-                                  Image.network(
-                                    "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                  Padding(padding: EdgeInsets.only(left: 5)),
+                                  Image(
+                                    image: AssetImage("assets/BookCover.png"),
                                     width: 100,
                                   ),
+                                  Padding(padding: EdgeInsets.only(left: 15)),
                                   Expanded(
                                       child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -376,11 +434,22 @@ class _mainHomePageState extends State<mainHomePage> {
                                       Expanded(
                                           child: Text(
                                         '\n${searchBooksList[index].description}',
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 9,
+                                        overflow: !searchBooksList[index].expanded ? TextOverflow.ellipsis : TextOverflow.ellipsis,
+                                        maxLines: searchBooksList[index].expanded ? 50 : 7,
                                       )
                                       ),
-                                      Text(searchBooksList[index].size.toString() + 'MB'),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Size: ' + searchBooksList[index].size.toString() + 'MB'),
+                                          searchBooksList[index].downloadExists ? Row(
+                                            children: [
+                                              Text("Downloaded"),
+                                              Icon(Icons.check_circle),
+                                            ],
+                                          ) : Spacer(),
+                                        ],
+                                      ),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,

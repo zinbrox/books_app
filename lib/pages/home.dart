@@ -18,20 +18,23 @@ class _HomeState extends State<Home> {
   ];
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: bottomNavigationBarFunction(),
-      body: tabs[_currentIndex]
-          /*
-      IndexedStack(
-        children: <Widget>[
-          myPage(),
-          mainHomePage(),
-          SettingsPage()
-        ],
-        index: _currentIndex,
-      ),
+    return new WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        bottomNavigationBar: bottomNavigationBarFunction(),
+        body: tabs[_currentIndex]
+            /*
+        IndexedStack(
+          children: <Widget>[
+            myPage(),
+            mainHomePage(),
+            SettingsPage()
+          ],
+          index: _currentIndex,
+        ),
 
-           */
+             */
+      ),
     ); //tabs[_currentIndex],
 
   }

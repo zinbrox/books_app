@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:epub/epub.dart' as epub;
 import 'package:epub_viewer/epub_viewer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,6 +64,7 @@ class _myPageState extends State<myPage> {
   String dropdownValue = 'Downloaded';
   final firestoreInstance = FirebaseFirestore.instance;
   var firebaseUser = FirebaseAuth.instance.currentUser;
+  bool expanded2 = false;
 
   Future<void> getDownloadedBooks() async {
     print("In getDownloadedBooks()");
@@ -247,6 +249,48 @@ class _myPageState extends State<myPage> {
     setState(() {});
   }
 
+  Future<void> downloadFile(String name) async {
+    print("In downloadFile");
+
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    File downloadToFile =
+    File('${appDocDir.path}/$name');
+
+    print(appDocDir.path);
+    await firebase_storage.FirebaseStorage.instance
+        .ref('books/$name')
+        .writeToFile(downloadToFile);
+    print("Downloaded File");
+
+    List<String> books;
+    final prefs = await SharedPreferences.getInstance();
+    books = prefs.getStringList('downloadedBooks') ?? [];
+    print(books);
+
+    String newBookLoc =
+        '${appDocDir.path}/$name';
+    if (!books.contains(newBookLoc)) {
+      books.add(newBookLoc);
+      prefs.setStringList('downloadedBooks', books);
+    }
+
+    Fluttertoast.showToast(
+        msg: "Downloaded Book!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0);
+
+
+
+  }
+
+  void removeBook(String name) {
+    print("In removeBook()");
+  }
+
+
+
   @override
   void initState() {
     super.initState();
@@ -262,6 +306,7 @@ class _myPageState extends State<myPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -292,7 +337,18 @@ class _myPageState extends State<myPage> {
 
   Widget returnDownloadedList() {
     return _loading
-        ? Center(child: CircularProgressIndicator())
+        ? Center(child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
+        Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+        Text("Fetching Downloads..."),
+        Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+        CircularProgressIndicator(),
+      ],
+    ))
         : RefreshIndicator(
             onRefresh: onRefresh,
             child: ListView.builder(
@@ -311,18 +367,21 @@ class _myPageState extends State<myPage> {
                           height: 200,
                           child: Row(
                             children: [
+                              Padding(padding: EdgeInsets.only(left: 5)),
                               downloadedBooksList[index].coverLoc == null
-                                  ? Image.network(
-                                      "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                  ? Image(
+                                      image: AssetImage("assets/BookCover.png"),
                                       width: 120,
                                     )
                                   : Image.file(File(
                                       downloadedBooksList[index].coverLoc)),
+                              Padding(padding: EdgeInsets.only(left: 15)),
                               Expanded(
                                   child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
+                                  Spacer(),
                                   Text(downloadedBooksList[index].title),
                                   downloadedBooksList[index].authors.length > 1
                                       ? Text(
@@ -330,6 +389,7 @@ class _myPageState extends State<myPage> {
                                       : Text(
                                           'By ${downloadedBooksList[index].author}'),
                                   //Image(image: downloadedBooksList[index].coverImage),
+                                  Spacer(),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
@@ -372,28 +432,50 @@ class _myPageState extends State<myPage> {
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (context, index) {
                     DocumentSnapshot orderData = snapshot.data.docs[index];
+                    bool expanded=false;
+                    double len;
+                    if(orderData.data()['description'].length < 500)
+                      len=0.4;
+                    else if(orderData.data()['description'].length > 500 && orderData.data()['description'].length<1000)
+                      len=0.65;
+                    else if(orderData.data()['description'].length > 1000 && orderData.data()['description'].length<1500)
+                      len=1.0;
+                    else if(orderData.data()['description'].length>1500)
+                      len=1.2;
+                    double containerHeight = expanded2 ? MediaQuery.of(context).size.height * len
+                        : MediaQuery.of(context).size.height * 0.30;
+
+
                     return GestureDetector(
                       onTap: () {
                         print("Tapped");
+                        setState(() {
+                          expanded2=!expanded2;
+                        });
+                        print(expanded2);
                       },
                       child: Card(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: SizedBox(
-                            height: 200,
+                          child: AnimatedContainer(
+                            curve: Curves.easeOut,
+                            duration: Duration(milliseconds: 400),
+                            height: containerHeight,
                             child: Row(
                               children: [
-                                Image.network(
-                                  "https://image.freepik.com/free-photo/red-hardcover-book-front-cover_1101-833.jpg",
+                                Padding(padding: EdgeInsets.only(left: 5)),
+                                Image(
+                                  image: AssetImage("assets/BookCover.png"),
                                   width: 120,
                                 ),
+                                Padding(padding: EdgeInsets.only(left: 15)),
                                 Expanded(
                                     child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(orderData.data()['title']),
-                                    Text(orderData.data()['author']),
+                                    Text('By ' + orderData.data()['author']),
                                     Expanded(
                                         child: Text(
                                       '\n${orderData.data()['description']}',
@@ -421,12 +503,12 @@ class _myPageState extends State<myPage> {
                                             if (value == 1) {
                                               print("Download Selected");
                                               //bookIndexSelected = index;
-                                              //downloadFile();
+                                              downloadFile(orderData.data()['name']);
                                             } else if (value == 2) {
                                               print(
                                                   "Remove from Want to Read Selected");
                                               //bookIndexSelected = index;
-                                              //saveBook();
+                                              removeBook(orderData.data()['name']);
                                             }
                                           },
                                         ),
@@ -441,9 +523,18 @@ class _myPageState extends State<myPage> {
                       ),
                     );
                   })
-              : Center(
-                  child: CircularProgressIndicator(),
-                );
+              : Center(child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
+              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+              Text("Fetching Saved..."),
+              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+              CircularProgressIndicator(),
+            ],
+          ));
         },
       ),
     );
