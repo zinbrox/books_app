@@ -192,6 +192,7 @@ class _mainHomePageState extends State<mainHomePage> {
   }
 
   onFilterChanged() async {
+    /*
     await showDialog(
     context: context,
     builder: (context) {
@@ -230,6 +231,12 @@ class _mainHomePageState extends State<mainHomePage> {
                         selectedCategories.contains(element.genre)).toList();
                     if(searchBooksList.isEmpty)
                       searchBooksList = booksList;
+                    Fluttertoast.showToast(
+                        msg: "Couldn't find any books with those parameters",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        fontSize: 16.0);
                   });
                 },
                 child: Text("Apply"))
@@ -240,7 +247,51 @@ class _mainHomePageState extends State<mainHomePage> {
     }
 
       );
+    */
+    await showModalBottomSheet(
+        context: context,
+        builder: (context){
+          return StatefulBuilder(builder: (context, setState){
+            return Container(
+              height: 300,
+              child: ListView.builder(
+                  itemCount: categories.length,
+                  itemBuilder: (BuildContext context, index) {
+                    return CheckboxListTile(
+                        title: Text(categories[index]),
+                        value: selectedCheck[index],
+                        onChanged: (bool value) {
+                          //print("Value: $value");
+                          if (value)
+                            selectedCategories.add(categories[index]);
+                          else
+                            selectedCategories.remove(categories[index]);
+                          setState(() {
+                            selectedCheck[index] = value;
+                          });
+                          //print("SelectedCheck[index]: ${selectedCheck[index]}");
+                          //print(selectedCategories);
+                        });
+                  }),
+            );
+          }
+          );
+
+        });
     setState(() {
+        searchBooksList = booksList.where((element) =>
+            selectedCategories.contains(element.genre)).toList();
+        if(searchBooksList.isEmpty) {
+          searchBooksList = booksList;
+        }
+        if(selectedCategories.isNotEmpty && searchBooksList==booksList) {
+          Fluttertoast.showToast(
+              msg: "Couldn't find any books with those parameters",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              fontSize: 16.0);
+        }
     });
 
   }
