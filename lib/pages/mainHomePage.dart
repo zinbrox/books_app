@@ -138,6 +138,10 @@ class _mainHomePageState extends State<mainHomePage> {
     books = prefs.getStringList('downloadedBooks') ?? [];
     print(books);
 
+    setState(() {
+      searchBooksList[bookIndexSelected].downloadExists=true;
+    });
+
     Fluttertoast.showToast(
         msg: "Downloaded Book!",
         toastLength: Toast.LENGTH_SHORT,
@@ -192,62 +196,6 @@ class _mainHomePageState extends State<mainHomePage> {
   }
 
   onFilterChanged() async {
-    /*
-    await showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(builder: (context, setState) {
-        return AlertDialog(
-          title: Text('Select Categories'),
-          content: Container(
-            height: 300,
-            width: 300,
-            child: ListView.builder(
-                itemCount: categories.length,
-                itemBuilder: (BuildContext context, index) {
-                  return CheckboxListTile(
-                      title: Text(categories[index]),
-                      value: selectedCheck[index],
-                      onChanged: (bool value) {
-                        print("Value: $value");
-                        if (value)
-                          selectedCategories.add(categories[index]);
-                        else
-                          selectedCategories.remove(categories[index]);
-                        setState(() {
-                          selectedCheck[index] = value;
-                        });
-                        print("SelectedCheck[index]: ${selectedCheck[index]}");
-                        print(selectedCategories);
-                      });
-                }),
-          ),
-          actions: [
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  setState(() {
-                    searchBooksList = booksList.where((element) =>
-                        selectedCategories.contains(element.genre)).toList();
-                    if(searchBooksList.isEmpty)
-                      searchBooksList = booksList;
-                    Fluttertoast.showToast(
-                        msg: "Couldn't find any books with those parameters",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        fontSize: 16.0);
-                  });
-                },
-                child: Text("Apply"))
-          ],
-        );
-      }
-      );
-    }
-
-      );
-    */
     await showModalBottomSheet(
         context: context,
         builder: (context){
