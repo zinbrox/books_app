@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,6 +67,9 @@ class _myPageState extends State<myPage> {
   final firestoreInstance = FirebaseFirestore.instance;
   var firebaseUser = FirebaseAuth.instance.currentUser;
   bool expanded2 = false;
+
+  ScrollController controller;
+  bool fabIsVisible = true;
 
   Future<void> getDownloadedBooks() async {
     print("In getDownloadedBooks()");
@@ -307,6 +311,13 @@ class _myPageState extends State<myPage> {
   void initState() {
     super.initState();
     getDownloadedBooks();
+    controller = ScrollController();
+    controller.addListener(() {
+      setState(() {
+        fabIsVisible =
+            controller.position.userScrollDirection == ScrollDirection.forward;
+      });
+    });
   }
 
   @override
@@ -344,61 +355,65 @@ class _myPageState extends State<myPage> {
       body: dropdownValue == 'Downloaded'
           ? returnDownloadedList()
           : returnSavedList(),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            Fluttertoast.showToast(
-                msg: "Choose an epub file to open",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                timeInSecForIosWeb: 1,
-                fontSize: 16.0);
-
-            FilePickerResult result = await FilePicker.platform.pickFiles(
-              type: FileType.custom,
-              allowedExtensions: ['epub'],
-            );
-            if(result != null) {
-              PlatformFile file = result.files.first;
-              print(file.name);
-
-              EpubViewer.setConfig(
-                themeColor: Theme.of(context).primaryColor,
-                identifier: "iosBook",
-                scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
-                allowSharing: true,
-                enableTts: true,
-                nightMode: false,
-              );
-
+      floatingActionButton: AnimatedOpacity(
+        opacity: fabIsVisible ? 1 : 0,
+        duration: Duration(milliseconds: 200),
+        child: FloatingActionButton(
+            onPressed: () async {
               Fluttertoast.showToast(
-                  msg: "Opening Book",
+                  msg: "Choose an epub file to open",
                   toastLength: Toast.LENGTH_SHORT,
                   gravity: ToastGravity.BOTTOM,
                   timeInSecForIosWeb: 1,
                   fontSize: 16.0);
 
-              EpubViewer.open(
-                file.path,
-                // Load the Last Location of book from the object loc (if first time opened, it will start from first page)
-                lastLocation: EpubLocator.fromJson({
-                  "bookId": "2239",
-                  "href": "/OEBPS/ch06.xhtml",
-                  "created": 1539934158390,
-                  "locations": {"cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"}
-                }), // first page will open up if the value is null
+              FilePickerResult result = await FilePicker.platform.pickFiles(
+                type: FileType.custom,
+                allowedExtensions: ['epub'],
               );
+              if(result != null) {
+                PlatformFile file = result.files.first;
+                print(file.name);
 
-            } else {
-              // User canceled the picker
-              Fluttertoast.showToast(
-                  msg: "Cancelled",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  timeInSecForIosWeb: 1,
-                  fontSize: 16.0);
-            }
-          },
-        child: Icon(Icons.file_upload),
+                EpubViewer.setConfig(
+                  themeColor: Theme.of(context).primaryColor,
+                  identifier: "iosBook",
+                  scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+                  allowSharing: true,
+                  enableTts: true,
+                  nightMode: false,
+                );
+
+                Fluttertoast.showToast(
+                    msg: "Opening Book",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    fontSize: 16.0);
+
+                EpubViewer.open(
+                  file.path,
+                  // Load the Last Location of book from the object loc (if first time opened, it will start from first page)
+                  lastLocation: EpubLocator.fromJson({
+                    "bookId": "2239",
+                    "href": "/OEBPS/ch06.xhtml",
+                    "created": 1539934158390,
+                    "locations": {"cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"}
+                  }), // first page will open up if the value is null
+                );
+
+              } else {
+                // User canceled the picker
+                Fluttertoast.showToast(
+                    msg: "Cancelled",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    fontSize: 16.0);
+              }
+            },
+          child: Icon(Icons.file_upload),
+        ),
       ),
     );
   }
@@ -420,6 +435,7 @@ class _myPageState extends State<myPage> {
         : RefreshIndicator(
             onRefresh: onRefresh1,
             child: ListView.builder(
+              controller: controller,
                 itemCount: downloadedBooksList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return GestureDetector(
