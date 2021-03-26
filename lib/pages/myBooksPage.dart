@@ -114,6 +114,12 @@ class _myPageState extends State<myPage> {
       downloadedBooksList.add(items);
       //print(epubBook.CoverImage);
     }
+    Fluttertoast.showToast(
+        msg: "Welcome Back, " + firebaseUser.displayName,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0);
 
     setState(() {
       _loading = false;
@@ -412,7 +418,7 @@ class _myPageState extends State<myPage> {
                     fontSize: 16.0);
               }
             },
-          child: Icon(Icons.file_upload),
+          child: Icon(Icons.folder_open),
         ),
       ),
     );
