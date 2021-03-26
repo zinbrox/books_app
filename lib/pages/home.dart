@@ -22,7 +22,22 @@ class _HomeState extends State<Home> {
       onWillPop: () async => false,
       child: Scaffold(
         bottomNavigationBar: bottomNavigationBarFunction(),
-        body: tabs[_currentIndex]
+        body: Stack(
+          children: [
+            Offstage(
+              offstage: _currentIndex!=0,
+              child: tabs[0],
+            ),
+            Offstage(
+              offstage: _currentIndex!=1,
+              child: tabs[1],
+            ),
+            Offstage(
+              offstage: _currentIndex!=2,
+              child: tabs[2],
+            ),
+          ],
+        ),
             /*
         IndexedStack(
           children: <Widget>[
