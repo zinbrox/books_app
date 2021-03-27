@@ -61,6 +61,8 @@ class _mainHomePageState extends State<mainHomePage> {
   Map sortBy = {'Alphabetical': 0, 'Reverse Alphabetical': 1, 'Date Added': 2, 'Size (Low to High)': 3, 'Size (High to Low)' : 4};
   int _radioValue=2; //Default Value of Sort is Date Added
 
+  DateTime now = DateTime.now();
+
 
 
   Future<void> showFiles() async {
@@ -68,6 +70,8 @@ class _mainHomePageState extends State<mainHomePage> {
     Books book;
     firebase_storage.ListResult result =
         await firebase_storage.FirebaseStorage.instance.ref('books/').listAll();
+    now = DateTime.now();
+    print(now);
 
 
     for(var i in categories) {
@@ -98,11 +102,24 @@ class _mainHomePageState extends State<mainHomePage> {
           downloadExists: downloadExists,
       );
       booksList.add(book);
+      // Sort the books according to Time Created (time added to cloud server)
+      booksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated));
+      searchBooksList = booksList;
+      setState(() {
+        _loading=false;
+      });
+      now=DateTime.now();
+      print(now);
     }
+    now=DateTime.now();
+    print(now);
 
+    /*
     // Sort the books according to Time Created (time added to cloud server)
     booksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated));
     searchBooksList = booksList;
+    
+     */
 
     setState(() {
       _loading = false;
@@ -296,6 +313,7 @@ class _mainHomePageState extends State<mainHomePage> {
   @override
   void initState() {
     super.initState();
+    print(now);
     showFiles();
   }
 
