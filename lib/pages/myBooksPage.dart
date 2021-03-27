@@ -203,57 +203,84 @@ class _myPageState extends State<myPage> {
 
   Future<void> deleteBook() async {
     print("In deleteBook()");
-    final prefs = await SharedPreferences.getInstance();
-    final rawJson = prefs.getStringList('bookLocations') ?? [];
-    for (var book in rawJson) {
-      // Decode from String to bookLocation Object
-      bookLocation temp = bookLocation.fromJson(json.decode(book));
-      // If the book last location already exists, remove that String from the saved.
-      if (temp.name == downloadedBooksList[bookIndexSelected].name) {
-        rawJson.remove(book);
-        break;
-      }
-    }
-    File file = File(downloadedBooksList[bookIndexSelected].name);
-    try {
-      file.delete();
-    } catch (e) {
-      print("File couldn't be deleted: ");
-      print(e);
-    }
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text("Delete Book"),
+            content: Text("Are you sure you want to delete \"${downloadedBooksList[bookIndexSelected].title}\" from your device?"),
+            actions: [
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Cancel")),
+              ElevatedButton(
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    final rawJson = prefs.getStringList('bookLocations') ?? [];
+                    for (var book in rawJson) {
+                      // Decode from String to bookLocation Object
+                      bookLocation temp = bookLocation.fromJson(json.decode(book));
+                      // If the book last location already exists, remove that String from the saved.
+                      if (temp.name == downloadedBooksList[bookIndexSelected].name) {
+                        rawJson.remove(book);
+                        break;
+                      }
+                    }
+                    File file = File(downloadedBooksList[bookIndexSelected].name);
+                    try {
+                      file.delete();
+                    } catch (e) {
+                      print("File couldn't be deleted: ");
+                      print(e);
+                    }
 
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    if(await File('${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
-        .title}.png').exists()) {
-      file = File(
-          '${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
-              .title}.png');
-      try {
-        file.delete();
-      } catch (e) {
-        print("Cover Image couldn't be deleted: ");
-        print(e);
-      }
-    }
-    else {
-      print("Cover Image File doesn't exist");
-    }
+                    Directory appDocDir = await getApplicationDocumentsDirectory();
+                    if(await File('${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
+                        .title}.png').exists()) {
+                      file = File(
+                          '${appDocDir.path}/${downloadedBooksList[bookIndexSelected]
+                              .title}.png');
+                      try {
+                        file.delete();
+                      } catch (e) {
+                        print("Cover Image couldn't be deleted: ");
+                        print(e);
+                      }
+                    }
+                    else {
+                      print("Cover Image File doesn't exist");
+                    }
 
-    print("Book Deleted");
+                    Navigator.of(context).pop();
+                    print("Book Deleted");
+                    Fluttertoast.showToast(
+                        msg: "Book Deleted",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        fontSize: 16.0);
 
-    List<String> books = prefs.getStringList('downloadedBooks') ?? [];
-    var x = downloadedBooksList[bookIndexSelected].name;
-    books.remove(x);
-    prefs.setStringList('downloadedBooks', books);
-    downloadedBooksList.remove(x);
+                    List<String> books = prefs.getStringList('downloadedBooks') ?? [];
+                    var x = downloadedBooksList[bookIndexSelected].name;
+                    books.remove(x);
+                    prefs.setStringList('downloadedBooks', books);
+                    downloadedBooksList.remove(x);
 
-    setState(() {
-      _loading = true;
-    });
-    getDownloadedBooks();
-    setState(() {
-      _loading = false;
-    });
+                    setState(() {
+                      _loading = true;
+                    });
+                    getDownloadedBooks();
+                    setState(() {
+                      _loading = false;
+                    });
+                  },
+                  child: Text("Delete")),
+            ],
+          );
+        });
+
   }
 
   Future<void> onRefresh1() async {
@@ -307,8 +334,40 @@ class _myPageState extends State<myPage> {
 
   }
 
-  void removeBook(String name) {
+  Future<void> removeBook(DocumentSnapshot orderData) async {
     print("In removeBook()");
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text("Remove from Want to Read"),
+            content: Text("Are you sure you want to remove \"${orderData.data()['title']}\" from Want to Read?"),
+            actions: [
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Cancel")),
+              ElevatedButton(
+                  onPressed: () async {
+                    await firestoreInstance.runTransaction((Transaction myTransaction) async {
+                      await myTransaction.delete(orderData.reference);
+                    });
+                    Navigator.of(context).pop();
+                    Fluttertoast.showToast(
+                        msg: "Deleted Book!",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        fontSize: 16.0);
+                    setState(() {
+                    });
+                  },
+                  child: Text("Remove")),
+            ],
+          );
+        });
+
   }
 
 
@@ -398,14 +457,7 @@ class _myPageState extends State<myPage> {
                     fontSize: 16.0);
 
                 EpubViewer.open(
-                  file.path,
-                  // Load the Last Location of book from the object loc (if first time opened, it will start from first page)
-                  lastLocation: EpubLocator.fromJson({
-                    "bookId": "2239",
-                    "href": "/OEBPS/ch06.xhtml",
-                    "created": 1539934158390,
-                    "locations": {"cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"}
-                  }), // first page will open up if the value is null
+                  file.path, // first page will open up if the value is null
                 );
 
               } else {
@@ -425,86 +477,97 @@ class _myPageState extends State<myPage> {
   }
 
   Widget returnDownloadedList() {
-    return _loading
-        ? Center(child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Padding(
-            padding: EdgeInsets.symmetric(horizontal: 15),
-            child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
-        Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-        Text("Fetching Downloads..."),
-        Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-        CircularProgressIndicator(),
-      ],
-    ))
-        : RefreshIndicator(
-            onRefresh: onRefresh1,
-            child: ListView.builder(
-              controller: controller,
-                itemCount: downloadedBooksList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                    onTap: () {
-                      print("Book Selected");
-                      bookIndexSelected = index;
-                      openBook();
-                    },
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: SizedBox(
-                          height: 200,
-                          child: Row(
-                            children: [
-                              Padding(padding: EdgeInsets.only(left: 5)),
-                              downloadedBooksList[index].coverLoc == null
-                                  ? Image(
-                                      image: AssetImage("assets/BookCover.png"),
-                                      width: 120,
-                                    )
-                                  : Image.file(File(
-                                      downloadedBooksList[index].coverLoc)),
-                              Padding(padding: EdgeInsets.only(left: 15)),
-                              Expanded(
-                                  child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Spacer(),
-                                  Text(downloadedBooksList[index].title),
-                                  downloadedBooksList[index].authors.length > 1
-                                      ? Text(
-                                          'By ${downloadedBooksList[index].authors}')
-                                      : Text(
-                                          'By ${downloadedBooksList[index].author}'),
-                                  //Image(image: downloadedBooksList[index].coverImage),
-                                  Spacer(),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      PopupMenuButton(
-                                        itemBuilder: (context) => [
-                                          PopupMenuItem(
-                                              value: 1, child: Text("Delete")),
-                                        ],
-                                        onSelected: (value) {
-                                          bookIndexSelected = index;
-                                          deleteBook();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ))
-                            ],
-                          ),
-                        ),
-                      ),
+    return RefreshIndicator(
+      onRefresh: onRefresh1,
+      child: _loading
+          ? Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
+          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+          Text("Fetching Downloads..."),
+          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+          CircularProgressIndicator(),
+        ],
+      ))
+          : downloadedBooksList.length==0 ?
+      Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Image(image: AssetImage("assets/TravoltaLibraryGif.gif"),)),
+          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+          Text("You don't have any Downloaded Books"),
+        ],
+      )) :
+      ListView.builder(
+        controller: controller,
+          itemCount: downloadedBooksList.length,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                print("Book Selected");
+                bookIndexSelected = index;
+                openBook();
+              },
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: SizedBox(
+                    height: 200,
+                    child: Row(
+                      children: [
+                        Padding(padding: EdgeInsets.only(left: 5)),
+                        downloadedBooksList[index].coverLoc == null
+                            ? Image(
+                                image: AssetImage("assets/BookCover.png"),
+                                width: 120,
+                              )
+                            : Image.file(File(
+                                downloadedBooksList[index].coverLoc)),
+                        Padding(padding: EdgeInsets.only(left: 15)),
+                        Expanded(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Spacer(),
+                            Text(downloadedBooksList[index].title),
+                            downloadedBooksList[index].authors.length > 1
+                                ? Text(
+                                    'By ${downloadedBooksList[index].authors}')
+                                : Text(
+                                    'By ${downloadedBooksList[index].author}'),
+                            //Image(image: downloadedBooksList[index].coverImage),
+                            Spacer(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                        value: 1, child: Text("Delete")),
+                                  ],
+                                  onSelected: (value) {
+                                    bookIndexSelected = index;
+                                    deleteBook();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ))
+                      ],
                     ),
-                  );
-                }),
-          );
+                  ),
+                ),
+              ),
+            );
+          }),
+    );
   }
 
   Widget returnSavedList() {
@@ -598,7 +661,7 @@ class _myPageState extends State<myPage> {
                                               print(
                                                   "Remove from Want to Read Selected");
                                               //bookIndexSelected = index;
-                                              removeBook(orderData.data()['name']);
+                                              removeBook(orderData);
                                             }
                                           },
                                         ),

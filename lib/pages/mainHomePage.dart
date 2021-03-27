@@ -118,7 +118,7 @@ class _mainHomePageState extends State<mainHomePage> {
     // Sort the books according to Time Created (time added to cloud server)
     booksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated));
     searchBooksList = booksList;
-    
+
      */
 
     setState(() {
