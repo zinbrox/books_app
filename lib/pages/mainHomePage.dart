@@ -10,13 +10,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
-  String name, title, author, description, genre;
+  String name, title, author, description, genre, fileLoc;
   double size;
   DateTime timeCreated;
   //expanded- Whether the Animated Container is expanded or now, downloadExists - to check whether the shown book is already downloaded or not
   bool expanded, downloadExists;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.fileLoc, this.size, this.timeCreated, this.expanded, this.downloadExists});
 }
 
 
@@ -100,6 +100,7 @@ class _mainHomePageState extends State<mainHomePage> {
         timeCreated: metadata.timeCreated,
         expanded: false,
           downloadExists: downloadExists,
+         fileLoc: '${appDocDir.path}/${item.name}',
       );
       booksList.add(book);
       // Sort the books according to Time Created (time added to cloud server)
@@ -124,6 +125,13 @@ class _mainHomePageState extends State<mainHomePage> {
     setState(() {
       _loading = false;
     });
+  }
+
+  Future<bool> checkIfFileExists(String filePath) async {
+    if(await File(filePath).exists())
+      return true;
+    else
+      return false;
   }
 
   Future<void> downloadFile() async {
@@ -459,7 +467,8 @@ class _mainHomePageState extends State<mainHomePage> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text('Size: ' + searchBooksList[index].size.toString() + 'MB'),
-                                          searchBooksList[index].downloadExists ? Row(
+                                          searchBooksList[index].downloadExists ?
+                                          Row(
                                             children: [
                                               Text("Downloaded"),
                                               Icon(Icons.check_circle),

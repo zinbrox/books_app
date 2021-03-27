@@ -114,12 +114,6 @@ class _myPageState extends State<myPage> {
       downloadedBooksList.add(items);
       //print(epubBook.CoverImage);
     }
-    Fluttertoast.showToast(
-        msg: "Welcome Back, " + firebaseUser.displayName,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        fontSize: 16.0);
 
     setState(() {
       _loading = false;
@@ -375,6 +369,14 @@ class _myPageState extends State<myPage> {
   @override
   void initState() {
     super.initState();
+    // Toast to Welcome User
+    Fluttertoast.showToast(
+        msg: "Welcome Back, " + firebaseUser.displayName,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0);
+
     getDownloadedBooks();
     controller = ScrollController();
     controller.addListener(() {
