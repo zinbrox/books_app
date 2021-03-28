@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:books_app/styles/color_styles.dart';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -333,7 +335,10 @@ class _mainHomePageState extends State<mainHomePage> {
   @override
   Widget build(BuildContext context) {
 
+    final _theme = Provider.of<DarkThemeProvider>(context);
+
     return Scaffold(
+      /*
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text("Main Home Page"),
@@ -348,43 +353,55 @@ class _mainHomePageState extends State<mainHomePage> {
               ),
               ],
            ),
-      body: _loading
-          ? Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                  child: Image(image: AssetImage("assets/CatReadingGif.gif"),)),
-              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-              Text("Loading Books..."),
-              Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-              CircularProgressIndicator(),
-            ],
-          ))
-          : Column(
-            children: [
-              Visibility(
-                visible: _searchVisible,
-                maintainSize: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                  child: TextFormField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: "Search Books"
+           
+       */
+      body: CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(
+              title: Text("Bibliotium"),
+              pinned: true,
+              snap: false,
+              floating: true,
+              expandedHeight: 200.0,
+              actions: [
+                IconButton(
+                    icon: Icon(Icons.search),
+                    onPressed: (){
+                      setState(() {
+                        _searchVisible=!_searchVisible;
+                      });
+
+                    })
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: FlutterLogo(),
+      ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(60.0),
+                child: Column(
+                  children: [
+                  Visibility(
+                  visible: _searchVisible,
+                  maintainSize: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: TextFormField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                          hintText: "Search Books"
+                      ),
+                      onChanged: onBookSearch,
                     ),
-                    onChanged: onBookSearch,
                   ),
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onFilterChanged();
-                      },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          onFilterChanged();
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10.0),
                           child: Row(
@@ -394,127 +411,321 @@ class _mainHomePageState extends State<mainHomePage> {
                               Text("Filter"),
                             ],
                           ),
-                        )),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                    onPressed: (){
-                      onSortChanged();
-                    },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.sort),
-                            Text("Sort"),
-                          ],
                         ),
-                      )), ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.grey,
+
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: (){
+                          onSortChanged();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.sort),
+                              Text("Sort"),
+                            ],
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.grey,
+
+                        ),
+                      ), ),
+                  ],
+                ),
                 ],
               ),
-              Expanded(
-                child: ListView.builder(
-                    itemCount: searchBooksList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      double len;
-                      if(searchBooksList[index].description.length < 500)
-                        len=0.4;
-                      else if(searchBooksList[index].description.length > 500 && searchBooksList[index].description.length<1000)
-                        len=0.65;
-                      else if(searchBooksList[index].description.length > 1000 && searchBooksList[index].description.length<1500)
-                        len=1.0;
-                      else if(searchBooksList[index].description.length>1500)
-                        len=1.2;
-                      double containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * len
-                          : MediaQuery.of(context).size.height * 0.30;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            searchBooksList[index].expanded = !searchBooksList[index].expanded;
-                          });
-                        },
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10.0),
-                            child: AnimatedContainer(
-                              curve: Curves.easeOut,
-                              duration: Duration(milliseconds: 400),
-                              height: containerHeight,
-                              child: Row(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(left: 5)),
-                                  Image(
-                                    image: AssetImage("assets/BookCover.png"),
-                                    width: 100,
-                                  ),
-                                  Padding(padding: EdgeInsets.only(left: 15)),
-                                  Expanded(
-                                      child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(searchBooksList[index].title),
-                                      Text('By ${searchBooksList[index].author}'),
-                                      Expanded(
-                                          child: Text(
-                                        '\n${searchBooksList[index].description}',
-                                        overflow: !searchBooksList[index].expanded ? TextOverflow.ellipsis : TextOverflow.ellipsis,
-                                        maxLines: searchBooksList[index].expanded ? 50 : 7,
-                                      )
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text('Size: ' + searchBooksList[index].size.toString() + 'MB'),
-                                          searchBooksList[index].downloadExists ?
-                                          Row(
-                                            children: [
-                                              Text("Downloaded"),
-                                              Icon(Icons.check_circle),
-                                            ],
-                                          ) : Spacer(),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text('Genre: ${searchBooksList[index].genre}'),
-                                          PopupMenuButton(
-                                            itemBuilder: (context) => [
-                                              PopupMenuItem(
-                                                  value: 1, child: Text("Download")),
-                                              PopupMenuItem(
-                                                  value: 2,
-                                                  child: Text("Want to Read")),
-                                            ],
-                                            onSelected: (value) {
-                                              if (value == 1) {
-                                                print("Download Selected");
-                                                bookIndexSelected = index;
-                                                downloadFile();
-                                              } else if (value == 2) {
-                                                print("Want to Read Selected");
-                                                bookIndexSelected = index;
-                                                saveBook();
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ))
-                                ],
+    ),
+            ),
+           SliverList(
+               delegate: SliverChildBuilderDelegate((context, index){
+                 double len;
+                 if(searchBooksList[index].description.length < 500)
+                   len=0.4;
+                 else if(searchBooksList[index].description.length > 500 && searchBooksList[index].description.length<1000)
+                   len=0.65;
+                 else if(searchBooksList[index].description.length > 1000 && searchBooksList[index].description.length<1500)
+                   len=1.0;
+                 else if(searchBooksList[index].description.length>1500)
+                   len=1.2;
+                 double containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * len
+                     : MediaQuery.of(context).size.height * 0.30;
+                 return GestureDetector(
+                   onTap: () {
+                     setState(() {
+                       searchBooksList[index].expanded = !searchBooksList[index].expanded;
+                     });
+                   },
+                   child: Card(
+                     child: Padding(
+                       padding: const EdgeInsets.symmetric(vertical: 10.0),
+                       child: AnimatedContainer(
+                         curve: Curves.easeOut,
+                         duration: Duration(milliseconds: 400),
+                         height: containerHeight,
+                         child: Row(
+                           children: [
+                             Padding(padding: EdgeInsets.only(left: 5)),
+                             Image(
+                               image: AssetImage("assets/BookCover.png"),
+                               width: 100,
+                             ),
+                             Padding(padding: EdgeInsets.only(left: 15)),
+                             Expanded(
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(searchBooksList[index].title),
+                                     Text('By ${searchBooksList[index].author}'),
+                                     Expanded(
+                                         child: Text(
+                                           '\n${searchBooksList[index].description}',
+                                           overflow: !searchBooksList[index].expanded ? TextOverflow.ellipsis : TextOverflow.ellipsis,
+                                           maxLines: searchBooksList[index].expanded ? 50 : 7,
+                                         )
+                                     ),
+                                     Row(
+                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                       children: [
+                                         Text('Size: ' + searchBooksList[index].size.toString() + 'MB'),
+                                         searchBooksList[index].downloadExists ?
+                                         Row(
+                                           children: [
+                                             Text("Downloaded"),
+                                             Icon(Icons.check_circle),
+                                           ],
+                                         ) : Spacer(),
+                                       ],
+                                     ),
+                                     Row(
+                                       mainAxisAlignment:
+                                       MainAxisAlignment.spaceBetween,
+                                       children: [
+                                         Text('Genre: ${searchBooksList[index].genre}'),
+                                         PopupMenuButton(
+                                           itemBuilder: (context) => [
+                                             PopupMenuItem(
+                                                 value: 1, child: Text("Download")),
+                                             PopupMenuItem(
+                                                 value: 2,
+                                                 child: Text("Want to Read")),
+                                           ],
+                                           onSelected: (value) {
+                                             if (value == 1) {
+                                               print("Download Selected");
+                                               bookIndexSelected = index;
+                                               downloadFile();
+                                             } else if (value == 2) {
+                                               print("Want to Read Selected");
+                                               bookIndexSelected = index;
+                                               saveBook();
+                                             }
+                                           },
+                                         ),
+                                       ],
+                                     ),
+                                   ],
+                                 ))
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                 );
+               })),
+
+           /*
+            _loading
+                ? Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                        child: Image(image: AssetImage("assets/CatReadingGif.gif"),)),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+                    Text("Loading Books..."),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+                    CircularProgressIndicator(),
+                  ],
+                ))
+                : Column(
+                  children: [
+                    Visibility(
+                      visible: _searchVisible,
+                      maintainSize: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                        child: TextFormField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: "Search Books"
+                          ),
+                          onChanged: onBookSearch,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              onFilterChanged();
+                            },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.filter_list),
+                                    Text("Filter"),
+                                  ],
+                                ),
                               ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.white60,
+
                             ),
                           ),
                         ),
-                      );
-                    }),
-              ),
-            ],
-          ),
+                        Expanded(
+                          child: TextButton(
+                          onPressed: (){
+                            onSortChanged();
+                          },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.sort),
+                                  Text("Sort"),
+                                ],
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.white60,
+
+                            ),
+                          ), ),
+                      ],
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                          itemCount: searchBooksList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            double len;
+                            if(searchBooksList[index].description.length < 500)
+                              len=0.4;
+                            else if(searchBooksList[index].description.length > 500 && searchBooksList[index].description.length<1000)
+                              len=0.65;
+                            else if(searchBooksList[index].description.length > 1000 && searchBooksList[index].description.length<1500)
+                              len=1.0;
+                            else if(searchBooksList[index].description.length>1500)
+                              len=1.2;
+                            double containerHeight = searchBooksList[index].expanded ? MediaQuery.of(context).size.height * len
+                                : MediaQuery.of(context).size.height * 0.30;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  searchBooksList[index].expanded = !searchBooksList[index].expanded;
+                                });
+                              },
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                  child: AnimatedContainer(
+                                    curve: Curves.easeOut,
+                                    duration: Duration(milliseconds: 400),
+                                    height: containerHeight,
+                                    child: Row(
+                                      children: [
+                                        Padding(padding: EdgeInsets.only(left: 5)),
+                                        Image(
+                                          image: AssetImage("assets/BookCover.png"),
+                                          width: 100,
+                                        ),
+                                        Padding(padding: EdgeInsets.only(left: 15)),
+                                        Expanded(
+                                            child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(searchBooksList[index].title),
+                                            Text('By ${searchBooksList[index].author}'),
+                                            Expanded(
+                                                child: Text(
+                                              '\n${searchBooksList[index].description}',
+                                              overflow: !searchBooksList[index].expanded ? TextOverflow.ellipsis : TextOverflow.ellipsis,
+                                              maxLines: searchBooksList[index].expanded ? 50 : 7,
+                                            )
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text('Size: ' + searchBooksList[index].size.toString() + 'MB'),
+                                                searchBooksList[index].downloadExists ?
+                                                Row(
+                                                  children: [
+                                                    Text("Downloaded"),
+                                                    Icon(Icons.check_circle),
+                                                  ],
+                                                ) : Spacer(),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text('Genre: ${searchBooksList[index].genre}'),
+                                                PopupMenuButton(
+                                                  itemBuilder: (context) => [
+                                                    PopupMenuItem(
+                                                        value: 1, child: Text("Download")),
+                                                    PopupMenuItem(
+                                                        value: 2,
+                                                        child: Text("Want to Read")),
+                                                  ],
+                                                  onSelected: (value) {
+                                                    if (value == 1) {
+                                                      print("Download Selected");
+                                                      bookIndexSelected = index;
+                                                      downloadFile();
+                                                    } else if (value == 2) {
+                                                      print("Want to Read Selected");
+                                                      bookIndexSelected = index;
+                                                      saveBook();
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ))
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+
+
+                          }),
+                    ),
+                  ],
+                ),
+            */
+          ],
+
+      ),
     );
   }
 }

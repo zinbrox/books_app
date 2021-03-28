@@ -41,7 +41,7 @@ class Styles {
       fontFamily: GoogleFonts.rubik().fontFamily,
 
 
-    primarySwatch: Colors.red,
+    primarySwatch: Colors.purple,
       primaryColor: isDarkTheme ? Colors.black : Colors.white,
 
       backgroundColor: isDarkTheme ? Colors.black : Color(0xffF1F5FB),
@@ -54,14 +54,18 @@ class Styles {
       highlightColor: isDarkTheme ? Color(0xff372901) : Color(0xffFCE192),
       hoverColor: isDarkTheme ? Color(0xff3A3A3B) : Color(0xff4285F4),
 
-      focusColor: isDarkTheme ? Color(0xff0B2512) : Color(0xffA8DAB5),
+      focusColor: isDarkTheme ? Color(0xff0B2512) : Colors.purple,
       disabledColor: Colors.grey,
       textSelectionColor: isDarkTheme ? Colors.white : Colors.black,
       cardColor: isDarkTheme ? Colors.grey[900] : Colors.white,
       canvasColor: isDarkTheme ? Colors.black : Colors.grey[50],
       brightness: isDarkTheme ? Brightness.dark : Brightness.light,
+
       buttonTheme: Theme.of(context).buttonTheme.copyWith(
+        buttonColor: isDarkTheme ? Colors.black12 : Colors.black,
           colorScheme: isDarkTheme ? ColorScheme.dark() : ColorScheme.light()),
+
+
       appBarTheme: AppBarTheme(
         elevation: 0.0,
       ),
