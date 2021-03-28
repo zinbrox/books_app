@@ -3,6 +3,7 @@ import 'package:books_app/pages/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -44,7 +45,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Center(child: Column(
         children: [
-          Image(image: AssetImage("assets/CatReadingGif.gif"),),
+          Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: Image(image: AssetImage("assets/BookLogo.png"), height: 300,),
+          ),
+          Spacer(),
           AnimatedOpacity(
             opacity: _buttonVisible ? 1 : 0,
             duration: Duration(milliseconds: 400),
@@ -62,8 +67,33 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   });
                 },
-                child: Text("Sign In With Google")),
-          )
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset("assets/GoogleLogo.png", height: 40.0,),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Text(
+                        "Sign In With Google",
+                        style: GoogleFonts.getFont("Open Sans",
+                            color: Colors.black,
+                            fontSize: 20.0
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.white,
+                padding: const EdgeInsets.all(8.0),
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+              ),
+            ),
+          ),
+          Padding(padding: EdgeInsets.symmetric(vertical: 50))
         ],
       ),),
     );
