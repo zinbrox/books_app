@@ -78,15 +78,15 @@ class _HomeState extends State<Home> {
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.book),
-          title: Text('My Books'),
+          label: "My Books",
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.explore),
-          title: Text('Explore'),
+          label: "Explore",
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.settings),
-          title: Text("Settings"),
+          label: "Settings",
         ),
       ],
       onTap: (index){

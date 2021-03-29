@@ -1,7 +1,9 @@
 import 'package:books_app/styles/color_styles.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,7 +18,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _password = new TextEditingController();
   String passText;
   int i=0;
-  var firebaseUser = FirebaseAuth.instance.currentUser;
+  final firestoreInstance = FirebaseFirestore.instance;
 
   Future<void> getScrollDirection() async {
     final prefs = await SharedPreferences.getInstance();
@@ -100,12 +102,6 @@ class _SettingsPageState extends State<SettingsPage> {
               )
             ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/adminPage');
-            },
-            child: Text("Admin Page"),
-          ),
           ListTile(
             title: Text("Request Books"),
             onTap: () => Navigator.pushNamed(context, '/requestsPage'),
@@ -143,9 +139,26 @@ class _SettingsPageState extends State<SettingsPage> {
                                   child: Text("Cancel")),
                               ElevatedButton(
                                   onPressed: () {
-                                    print(passText);
+                                    var firebaseUser = FirebaseAuth.instance.currentUser;
                                     print(firebaseUser.uid);
-                                  },
+                                    firestoreInstance.collection("adminControl").get().then((querySnapshot){
+                                      querySnapshot.docs.forEach((element) {
+                                        if (element.data()['${firebaseUser.uid}'] == true) {
+                                          print("Valid");
+                                          Navigator.pushNamed(context, '/adminPage');
+                                        }
+                                        else {
+                                          print("Invalid");
+                                          Fluttertoast.showToast(
+                                              msg: "You're not an admin",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              timeInSecForIosWeb: 1,
+                                              fontSize: 16.0);
+                                        }
+                                      });
+                                    });
+                                },
                                   child: Text("Enter")),
                             ],
                           );
