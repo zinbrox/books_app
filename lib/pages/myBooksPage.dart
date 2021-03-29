@@ -71,6 +71,8 @@ class _myPageState extends State<myPage> {
   ScrollController controller;
   bool fabIsVisible = true;
 
+  int i=0;
+
   Future<void> getDownloadedBooks() async {
     print("In getDownloadedBooks()");
     downloadedBooksList = [];
@@ -282,9 +284,6 @@ class _myPageState extends State<myPage> {
       _loading=true;
     });
     getDownloadedBooks();
-    setState(() {
-      _loading=false;
-    });
   }
 
   Future<void> onRefresh2() async {
@@ -422,10 +421,11 @@ class _myPageState extends State<myPage> {
       body: dropdownValue == 'Downloaded'
           ? returnDownloadedList()
           : returnSavedList(),
-      floatingActionButton: AnimatedOpacity(
-        opacity: fabIsVisible ? 1 : 0,
-        duration: Duration(milliseconds: 200),
+      floatingActionButton: Visibility(
+        visible: fabIsVisible,
+        maintainState: false,
         child: FloatingActionButton(
+          backgroundColor: Colors.purple,
             onPressed: () async {
               Fluttertoast.showToast(
                   msg: "Choose an epub file to open",
@@ -472,7 +472,7 @@ class _myPageState extends State<myPage> {
                     fontSize: 16.0);
               }
             },
-          child: Icon(Icons.folder_open),
+          child: Icon(Icons.folder_open, color: Colors.white,),
         ),
       ),
     );

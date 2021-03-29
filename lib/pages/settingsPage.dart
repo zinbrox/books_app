@@ -1,5 +1,6 @@
 import 'package:books_app/styles/color_styles.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,10 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   PlatformFile file;
   String lightMode;
+  final TextEditingController _password = new TextEditingController();
+  String passText;
+  int i=0;
+  var firebaseUser = FirebaseAuth.instance.currentUser;
 
   Future<void> getScrollDirection() async {
     final prefs = await SharedPreferences.getInstance();
@@ -95,14 +100,6 @@ class _SettingsPageState extends State<SettingsPage> {
               )
             ],
           ),
-
-          ElevatedButton(onPressed: () {
-            Navigator.pushNamed(context, '/myPage');
-          }, child: Text("Go to my Page")
-          ),
-          ElevatedButton(onPressed: () {
-            Navigator.pushNamed(context, '/mainHomePage');
-          }, child: Text("Main Home Page")),
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/adminPage');
@@ -117,6 +114,47 @@ class _SettingsPageState extends State<SettingsPage> {
             title: Text("Feedback"),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
           ),
+          Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: (){
+                  i++;
+                  if(i==10) {
+                    i=0;
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context){
+                          return AlertDialog(
+                            title: Text("Enter Admin Password"),
+                            content: TextFormField(
+                              controller: _password,
+                              maxLines: 1,
+                              onChanged: (value) {
+                                passText = _password.text;
+                              },
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                  onPressed: (){
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("Cancel")),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    print(passText);
+                                    print(firebaseUser.uid);
+                                  },
+                                  child: Text("Enter")),
+                            ],
+                          );
+                        });
+                  }
+                },
+                  child: Text("zinbrox", style: TextStyle(fontSize: 20),)),
+            ],
+          )
         ],
       ),),
     );

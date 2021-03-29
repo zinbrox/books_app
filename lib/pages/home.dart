@@ -22,7 +22,8 @@ class _HomeState extends State<Home> {
       onWillPop: () async => false,
       child: Scaffold(
         bottomNavigationBar: bottomNavigationBarFunction(),
-        body: Stack(
+        body:
+        Stack(
           children: [
             Offstage(
               offstage: _currentIndex!=0,
@@ -38,7 +39,10 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-            /*
+
+
+
+        /*
         IndexedStack(
           children: <Widget>[
             myPage(),
@@ -47,14 +51,27 @@ class _HomeState extends State<Home> {
           ],
           index: _currentIndex,
         ),
+        TabBarView(
+          children: [
+            myPage(),
+            mainHomePage(),
+            SettingsPage(),
+          ],
+        ),
 
-             */
+        tabs[_currentIndex],
+
+         */
+
+
       ),
     ); //tabs[_currentIndex],
 
   }
   Widget bottomNavigationBarFunction() {
     return BottomNavigationBar(
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.purple,
       currentIndex: _currentIndex,
