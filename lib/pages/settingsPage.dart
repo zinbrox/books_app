@@ -61,11 +61,10 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Center(child: Column(
         children: <Widget>[
-          Text("Hello"),
           Row(
             children: [
               Padding(padding: EdgeInsets.only(left: 15)),
-              Text("App Theme"),
+              Text("App Theme", style: TextStyle(fontSize: 18),),
               Spacer(),
               DropdownButton<String>(
                 value: dropdownValue,
@@ -84,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Row(
             children: <Widget>[
               Padding(padding: EdgeInsets.only(left: 15)),
-              Text("Reader Theme"),
+              Text("Reader Theme", style: TextStyle(fontSize: 18),),
               Spacer(),
               DropdownButton<String>(
                 value: lightMode,
@@ -103,11 +102,11 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
           ListTile(
-            title: Text("Request Books"),
+            title: Text("Request Books", style: TextStyle(fontSize: 18),),
             onTap: () => Navigator.pushNamed(context, '/requestsPage'),
           ),
           ListTile(
-            title: Text("Feedback"),
+            title: Text("Feedback", style: TextStyle(fontSize: 18),),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
           ),
           Spacer(),

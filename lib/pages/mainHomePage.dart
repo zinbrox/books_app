@@ -40,6 +40,7 @@ class _mainHomePageState extends State<mainHomePage> {
   // For Filtering
   List<String> categories = [
     'Art',
+    'Autobiography',
     'Business',
     'Children'
     'Classics',
@@ -49,11 +50,13 @@ class _mainHomePageState extends State<mainHomePage> {
     'History',
     'Horror',
     'Humour & Comedy',
-    'Memoir & Autobiography',
-    'Mystery & Thriller',
+    'Mystery',
     'Nonfiction',
+    'Psychology',
+    'Science',
     'Science Fiction',
-    'Science & Technology',
+    'Technology',
+    'Thriller'
     'Young Adult',
   ];
   List<String> selectedCategories=[];
@@ -177,21 +180,29 @@ class _mainHomePageState extends State<mainHomePage> {
         fontSize: 16.0);
   }
 
-  Future<void> saveBook() async {
-    print("In saveBook()");
-    bool existingCheck=false;
+  // Check if File is already saved in Want to Read
+  Future<bool> checkIfAlreadySaved() async {
     var firebaseUser = FirebaseAuth.instance.currentUser;
-    firestoreInstance.collection("users").get().then((querySnapshot){
+    await firestoreInstance.collection("users").get().then((querySnapshot){
       querySnapshot.docs.forEach((element) {
         firestoreInstance.collection("users").doc(firebaseUser.uid).collection("saved").get().then((querySnapshot){
-          querySnapshot.docs.forEach((element) {
-            if(element.data()['name'] == searchBooksList[bookIndexSelected].name)
-              existingCheck=true;
+          querySnapshot.docs.forEach((element1) {
+            print(element1.data()['name']);
+            if(element1.data()['name'] == searchBooksList[bookIndexSelected].name)
+              return true;
           });
         });
       });
     });
-    if(!existingCheck) {
+    return false;
+  }
+
+  // Save Book to Want to Read if it isn't already there
+  Future<void> saveBook() async {
+    print("In saveBook()");
+    var firebaseUser = FirebaseAuth.instance.currentUser;
+    if(await checkIfAlreadySaved()) {
+      print("Saving");
       firestoreInstance
           .collection("users")
           .doc(firebaseUser.uid)
@@ -214,7 +225,7 @@ class _mainHomePageState extends State<mainHomePage> {
     }
   }
 
-  // searchBooksList only contains those books which have searched keyword in it
+  // Search books based on the input. searchBooksList only contains those books which have searched keyword in it
   onBookSearch(String value) {
     print("In onItemChanged");
     setState(() {
@@ -222,6 +233,7 @@ class _mainHomePageState extends State<mainHomePage> {
     });
   }
 
+  // Return only certain selected categories of books
   onFilterChanged() async {
     await showModalBottomSheet(
         context: context,

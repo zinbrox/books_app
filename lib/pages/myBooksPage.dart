@@ -116,6 +116,7 @@ class _myPageState extends State<myPage> {
       downloadedBooksList.add(items);
       //print(epubBook.CoverImage);
     }
+    downloadedBooksList = downloadedBooksList.reversed.toList();
 
     setState(() {
       _loading = false;
@@ -411,7 +412,7 @@ class _myPageState extends State<myPage> {
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value),
+                  child: Text(value, style: TextStyle(fontSize: 18),),
                 );
               }).toList(),
             ),
@@ -537,12 +538,8 @@ class _myPageState extends State<myPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Spacer(),
-                            Text(downloadedBooksList[index].title),
-                            downloadedBooksList[index].authors.length > 1
-                                ? Text(
-                                    'By ${downloadedBooksList[index].authors}')
-                                : Text(
-                                    'By ${downloadedBooksList[index].author}'),
+                            Text(downloadedBooksList[index].title, textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
+                            Text('\nBy ${downloadedBooksList[index].author}', textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
                             //Image(image: downloadedBooksList[index].coverImage),
                             Spacer(),
                             Row(

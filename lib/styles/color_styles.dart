@@ -41,6 +41,8 @@ class Styles {
       fontFamily: GoogleFonts.rubik().fontFamily,
 
 
+
+
     primarySwatch: Colors.purple,
       primaryColor: isDarkTheme ? Colors.black : Colors.white,
 
