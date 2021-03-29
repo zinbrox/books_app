@@ -56,7 +56,7 @@ class _HomeState extends State<Home> {
   Widget bottomNavigationBarFunction() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.deepPurpleAccent,
+      selectedItemColor: Colors.purple,
       currentIndex: _currentIndex,
       items: [
         BottomNavigationBarItem(

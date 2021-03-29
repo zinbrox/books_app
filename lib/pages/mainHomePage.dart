@@ -362,7 +362,7 @@ class _mainHomePageState extends State<mainHomePage> {
               pinned: true,
               snap: false,
               floating: true,
-              expandedHeight: 200.0,
+              expandedHeight: _searchVisible ? 200.0 : 140.0,
               actions: [
                 IconButton(
                     icon: Icon(Icons.search),
@@ -374,8 +374,73 @@ class _mainHomePageState extends State<mainHomePage> {
                     })
               ],
               flexibleSpace: FlexibleSpaceBar(
-                background: FlutterLogo(),
+                background: Column(
+                  children: [
+                    SizedBox(height: 90.0),
+                    Visibility(
+                      visible: _searchVisible,
+                      maintainSize: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                        child: TextFormField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                              hintText: "Search Books"
+                          ),
+                          onChanged: onBookSearch,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              onFilterChanged();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.filter_list),
+                                  Text("Filter"),
+                                ],
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.grey,
+
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: (){
+                              onSortChanged();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.sort),
+                                  Text("Sort"),
+                                ],
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: _theme.darkTheme ? Colors.white60 : Colors.grey,
+
+                            ),
+                          ), ),
+                      ],
+                    ),
+                  ],
+                ),
       ),
+              /*
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(60.0),
                 child: Column(
@@ -443,6 +508,7 @@ class _mainHomePageState extends State<mainHomePage> {
                 ],
               ),
     ),
+              */
             ),
            SliverList(
                delegate: SliverChildBuilderDelegate((context, index){
