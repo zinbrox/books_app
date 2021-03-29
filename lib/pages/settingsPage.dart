@@ -61,52 +61,44 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Center(child: Column(
         children: <Widget>[
-          Row(
-            children: [
-              Padding(padding: EdgeInsets.only(left: 15)),
-              Text("App Theme", style: TextStyle(fontSize: 18),),
-              Spacer(),
-              DropdownButton<String>(
-                value: dropdownValue,
-                onChanged: (String newValue){
-                  setState((){
-                    dropdownValue = newValue;
-                    newValue=='Dark' ? _themeChanger.darkTheme=true : _themeChanger.darkTheme=false;
-                  });
-                },
-                items: <String>['Light','Dark'].map<DropdownMenuItem<String>>((String value){
-                  return DropdownMenuItem<String>(value: value, child: Text(value),);
-                }).toList(),
-              ),
-            ],
+          ListTile(
+            title: Text("App Theme", style: TextStyle(fontSize: 18),),
+            trailing: DropdownButton<String>(
+              value: dropdownValue,
+              onChanged: (String newValue){
+                setState((){
+                  dropdownValue = newValue;
+                  newValue=='Dark' ? _themeChanger.darkTheme=true : _themeChanger.darkTheme=false;
+                });
+              },
+              items: <String>['Light','Dark'].map<DropdownMenuItem<String>>((String value){
+                return DropdownMenuItem<String>(value: value, child: Text(value),);
+              }).toList(),
+            ),
           ),
-          Row(
-            children: <Widget>[
-              Padding(padding: EdgeInsets.only(left: 15)),
-              Text("Reader Theme", style: TextStyle(fontSize: 18),),
-              Spacer(),
-              DropdownButton<String>(
-                value: lightMode,
-                onChanged: (String newValue){
-                  if(this.mounted) {
-                    setState((){
-                      lightMode=newValue;
-                      changeLightMode(newValue);
-                    });
-                  }
-                },
-                items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
-                  return DropdownMenuItem<String>(value: value, child: Text(value),);
-                }).toList(),
-              )
-            ],
+          ListTile(
+            title: Text("Reader Theme", style: TextStyle(fontSize: 18),),
+            trailing:  DropdownButton<String>(
+              value: lightMode,
+              onChanged: (String newValue){
+                if(this.mounted) {
+                  setState((){
+                    lightMode=newValue;
+                    changeLightMode(newValue);
+                  });
+                }
+              },
+              items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
+                return DropdownMenuItem<String>(value: value, child: Text(value),);
+              }).toList(),
+            ),
           ),
           ListTile(
             title: Text("Request Books", style: TextStyle(fontSize: 18),),
             onTap: () => Navigator.pushNamed(context, '/requestsPage'),
           ),
           ListTile(
-            title: Text("Feedback", style: TextStyle(fontSize: 18),),
+            title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
           ),
           Spacer(),
@@ -164,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         });
                   }
                 },
-                  child: Text("zinbrox", style: TextStyle(fontSize: 20),)),
+                  child: Text("zinbrox", style: TextStyle(fontSize: 20, decoration: TextDecoration.overline),)),
             ],
           )
         ],

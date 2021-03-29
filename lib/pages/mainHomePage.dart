@@ -12,13 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
-  String name, title, author, description, genre, fileLoc;
+  String name, title, author, description, genre;
   double size;
   DateTime timeCreated;
   //expanded- Whether the Animated Container is expanded or now, downloadExists - to check whether the shown book is already downloaded or not
   bool expanded, downloadExists;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.fileLoc, this.size, this.timeCreated, this.expanded, this.downloadExists});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
 }
 
 
@@ -40,7 +40,6 @@ class _mainHomePageState extends State<mainHomePage> {
   // For Filtering
   List<String> categories = [
     'Art',
-    'Autobiography',
     'Business',
     'Children'
     'Classics',
@@ -49,14 +48,17 @@ class _mainHomePageState extends State<mainHomePage> {
     'Fiction',
     'History',
     'Horror',
-    'Humour & Comedy',
+    'Humour',
+    'Memoir'
     'Mystery',
     'Nonfiction',
+    'Poetry',
     'Psychology',
     'Science',
     'Science Fiction',
     'Technology',
-    'Thriller'
+    'Thriller',
+    'Travel',
     'Young Adult',
   ];
   List<String> selectedCategories=[];
@@ -105,7 +107,6 @@ class _mainHomePageState extends State<mainHomePage> {
         timeCreated: metadata.timeCreated,
         expanded: false,
           downloadExists: downloadExists,
-         fileLoc: '${appDocDir.path}/${item.name}',
       );
       booksList.add(book);
       // Sort the books according to Time Created (time added to cloud server)
@@ -214,14 +215,21 @@ class _mainHomePageState extends State<mainHomePage> {
         "description": searchBooksList[bookIndexSelected].description,
         "genre": searchBooksList[bookIndexSelected].genre,
       }).then((_) {
-        final snackBar = SnackBar(content: Text('Added to Want to Read!'));
-        Scaffold.of(context).showSnackBar(snackBar);
-        print("success!");
+        Fluttertoast.showToast(
+            msg: "Added to Want to Read",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            fontSize: 16.0);
       });
     }
     else {
-      final snackBar = SnackBar(content: Text("Book already exists in Want to Read"));
-      Scaffold.of(context).showSnackBar(snackBar);
+      Fluttertoast.showToast(
+          msg: "Book Already Exists in Want to Read",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          fontSize: 16.0);
     }
   }
 
@@ -485,7 +493,6 @@ class _mainHomePageState extends State<mainHomePage> {
                                    children: [
                                      Text(searchBooksList[index].title),
                                      Text('By ${searchBooksList[index].author}'),
-                                     Text(searchBooksList[index].description.length.toString()),
                                      Expanded(
                                          child: Text(
                                            '\n${searchBooksList[index].description}',

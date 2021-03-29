@@ -27,7 +27,7 @@ class _requestPageState extends State<requestPage> {
         body: Center(
             child: ListView(
           children: <Widget>[
-            Center(child: Text("Looking for a book in particular? Send a request for the book and we'll try to add it!")),
+            Center(child: Text("Looking for a book in particular? Send a request for the book and we'll try to add it!", textAlign: TextAlign.center)),
             SizedBox(height: 50,),
             TextFormField(
               controller: _title,
@@ -96,6 +96,7 @@ class _feedbackPageState extends State<feedbackPage> {
       body: Center(
         child: Column(
           children: <Widget>[
+            Text("Any Feedback is helpful!", style: TextStyle(fontSize: 18),),
             SizedBox(
               height: 30,
             ),
