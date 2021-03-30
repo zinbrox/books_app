@@ -1,5 +1,6 @@
 import 'package:books_app/pages/home.dart';
 import 'package:books_app/pages/sign_in.dart';
+import 'package:delayed_display/delayed_display.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +12,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _buttonVisible=false;
+  bool _buttonVisible=true;
 
   Future<void> googleCall() async {
-    Future.delayed(const Duration(seconds: 3),() async {
+
       await Firebase.initializeApp();
 
       User user = FirebaseAuth.instance.currentUser;
@@ -32,7 +33,8 @@ class _LoginPageState extends State<LoginPage> {
           _buttonVisible=true;
         });
       }
-    });
+
+
   }
 
   @override
@@ -50,48 +52,50 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(40.0),
             child: Image(image: AssetImage("assets/BookLogo.png"), height: 300,),
           ),
-          //Spacer(),
-          Padding(padding: EdgeInsets.symmetric(vertical: 80)),
+          //Padding(padding: EdgeInsets.symmetric(vertical: 80)),
           AnimatedOpacity(
             opacity: _buttonVisible ? 1 : 0,
             duration: Duration(milliseconds: 400),
-            child: ElevatedButton(
-                onPressed: (){
-                  signInWithGoogle().then((result) {
-                    if (result != null) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return Home();
-                          },
-                        ),
-                      );
-                    }
-                  });
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset("assets/GoogleLogo.png", height: 40.0,),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: Text(
-                        "Sign In With Google",
-                        style: GoogleFonts.getFont("Open Sans",
-                            color: Colors.black,
-                            fontSize: 20.0
+            child: DelayedDisplay(
+              fadingDuration: Duration(seconds: 1),
+              child: ElevatedButton(
+                  onPressed: (){
+                    signInWithGoogle().then((result) {
+                      if (result != null) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return Home();
+                            },
+                          ),
+                        );
+                      }
+                    });
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset("assets/GoogleLogo.png", height: 40.0,),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Text(
+                          "Sign In With Google",
+                          style: GoogleFonts.getFont("Open Sans",
+                              color: Colors.black,
+                              fontSize: 20.0
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.white,
+                  padding: const EdgeInsets.all(8.0),
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
                 ),
-              style: ElevatedButton.styleFrom(
-                primary: Colors.white,
-                padding: const EdgeInsets.all(8.0),
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
               ),
             ),
           ),
@@ -101,3 +105,38 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+
+    void wait() {
+      Future.delayed(const Duration(seconds: 3),() async {
+        Navigator.pushNamed(context, '/login');
+  });
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    wait();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40.0),
+          child: Image(
+            image: AssetImage("assets/BookLogo.png"),
+            height: 300,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

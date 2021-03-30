@@ -208,7 +208,7 @@ class _mainHomePageState extends State<mainHomePage> {
   Future<void> saveBook() async {
     print("In saveBook()");
     var firebaseUser = FirebaseAuth.instance.currentUser;
-    if(await checkIfAlreadySaved()) {
+    if(!await checkIfAlreadySaved()) {
       print("Saving");
       firestoreInstance
           .collection("users")

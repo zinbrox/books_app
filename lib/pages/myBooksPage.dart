@@ -423,7 +423,7 @@ class _myPageState extends State<myPage> {
         visible: fabIsVisible,
         maintainState: false,
         child: FloatingActionButton(
-          backgroundColor: Colors.deepPurpleAccent,
+          backgroundColor: Colors.pinkAccent,
             onPressed: () async {
               Fluttertoast.showToast(
                   msg: "Choose an epub file to open",

@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: Styles.themeData(themeChangeProvider.darkTheme, context),
-            initialRoute: '/login',
+            initialRoute: '/splash',
             routes: {
               '/login': (context) => LoginPage(),
               '/home': (context) => Home(),
@@ -47,6 +47,7 @@ class _MyAppState extends State<MyApp> {
               '/mainHomePage': (context) => mainHomePage(),
               '/requestsPage':(context) => requestPage(),
               '/feedbackPage':(context) => feedbackPage(),
+              '/splash':(context) => SplashScreen(),
             },
           );
         },

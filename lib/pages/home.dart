@@ -73,7 +73,7 @@ class _HomeState extends State<Home> {
       showSelectedLabels: false,
       showUnselectedLabels: false,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.deepPurpleAccent,
+      selectedItemColor: Colors.pinkAccent,
       currentIndex: _currentIndex,
       items: [
         BottomNavigationBarItem(

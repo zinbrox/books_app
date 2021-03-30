@@ -53,10 +53,11 @@ class Styles {
 
       hintColor: isDarkTheme ? Colors.white : Colors.black,
 
-      highlightColor: isDarkTheme ? Color(0xff372901) : Color(0xffFCE192),
+      highlightColor: Colors.deepPurpleAccent[100],
+      //highlightColor: isDarkTheme ? Color(0xff372901) : Color(0xffFCE192),
       hoverColor: isDarkTheme ? Color(0xff3A3A3B) : Color(0xff4285F4),
 
-      focusColor: isDarkTheme ? Color(0xff0B2512) : Colors.purple,
+      focusColor: isDarkTheme ? Color(0xff0B2512) : Colors.deepPurpleAccent,
       disabledColor: Colors.grey,
       textSelectionColor: isDarkTheme ? Colors.white : Colors.black,
       cardColor: isDarkTheme ? Colors.grey[900] : Colors.white,
