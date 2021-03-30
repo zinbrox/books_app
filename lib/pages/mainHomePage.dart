@@ -142,6 +142,12 @@ class _mainHomePageState extends State<mainHomePage> {
 
   Future<void> downloadFile() async {
     print("In downloadFile()");
+    Fluttertoast.showToast(
+        msg: "Downloading Book...",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        fontSize: 16.0);
     Directory appDocDir = await getApplicationDocumentsDirectory();
     File downloadToFile =
         File('${appDocDir.path}/${searchBooksList[bookIndexSelected].name}');

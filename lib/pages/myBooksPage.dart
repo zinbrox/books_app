@@ -269,9 +269,6 @@ class _myPageState extends State<myPage> {
                       _loading = true;
                     });
                     getDownloadedBooks();
-                    setState(() {
-                      _loading = false;
-                    });
                   },
                   child: Text("Delete")),
             ],
@@ -483,30 +480,48 @@ class _myPageState extends State<myPage> {
     return RefreshIndicator(
       onRefresh: onRefresh1,
       child: _loading
-          ? Center(child: Column(
+          ? SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Center(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15),
-              child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
-          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-          Text("Fetching Downloads..."),
-          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-          CircularProgressIndicator(),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: Image(image: AssetImage("assets/DogDiggingGif.gif"),)),
+            Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+            Text("Fetching Downloads...", textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
+            Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+            CircularProgressIndicator(),
         ],
-      ))
+      )),
+          )
           : downloadedBooksList.length==0 ?
-      Center(child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15),
-              child: Image(image: AssetImage("assets/TravoltaLibraryGif.gif"),)),
-          Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
-          Text("You don't have any Downloaded Books"),
-        ],
-      )) :
+      LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 15),
+                        child: Image(image: AssetImage("assets/TravoltaLibraryGif.gif"),)),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
+                    Text("You don't have any Downloaded Books :/\nCheck out the explore page to download some", textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
+                    Spacer(),
+                    Text("Already downloaded?\nRefresh the page by dragging from the top", textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+      ) :
       ListView.builder(
+          physics: AlwaysScrollableScrollPhysics(),
         controller: controller,
           itemCount: downloadedBooksList.length,
           itemBuilder: (BuildContext context, int index) {
@@ -581,6 +596,7 @@ class _myPageState extends State<myPage> {
         builder: (context, snapshot) {
           return snapshot.hasData
               ? ListView.builder(
+                  physics: AlwaysScrollableScrollPhysics(),
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (context, index) {
                     DocumentSnapshot orderData = snapshot.data.docs[index];

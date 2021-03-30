@@ -44,12 +44,14 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.all(40.0),
             child: Image(image: AssetImage("assets/BookLogo.png"), height: 300,),
           ),
-          Spacer(),
+          //Spacer(),
+          Padding(padding: EdgeInsets.symmetric(vertical: 80)),
           AnimatedOpacity(
             opacity: _buttonVisible ? 1 : 0,
             duration: Duration(milliseconds: 400),
@@ -93,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          Padding(padding: EdgeInsets.symmetric(vertical: 50))
+          //Padding(padding: EdgeInsets.symmetric(vertical: 30))
         ],
       ),),
     );
