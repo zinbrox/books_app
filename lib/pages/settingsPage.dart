@@ -76,6 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
               }).toList(),
             ),
           ),
+          Divider(thickness: 3,),
           ListTile(
             title: Text("Reader Theme", style: TextStyle(fontSize: 18),),
             trailing:  DropdownButton<String>(
@@ -93,14 +94,19 @@ class _SettingsPageState extends State<SettingsPage> {
               }).toList(),
             ),
           ),
+          Divider(thickness: 3,),
           ListTile(
             title: Text("Request Books", style: TextStyle(fontSize: 18),),
+            trailing: Icon(Icons.navigate_next),
             onTap: () => Navigator.pushNamed(context, '/requestsPage'),
           ),
+          Divider(thickness: 3,),
           ListTile(
             title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
+            trailing: Icon(Icons.navigate_next),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
           ),
+          Divider(thickness: 3,),
           Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

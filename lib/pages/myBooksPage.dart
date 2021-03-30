@@ -346,7 +346,7 @@ class _myPageState extends State<myPage> {
                     });
                     Navigator.of(context).pop();
                     Fluttertoast.showToast(
-                        msg: "Deleted Book!",
+                        msg: "Book Removed",
                         toastLength: Toast.LENGTH_SHORT,
                         gravity: ToastGravity.BOTTOM,
                         timeInSecForIosWeb: 1,
@@ -423,7 +423,7 @@ class _myPageState extends State<myPage> {
         visible: fabIsVisible,
         maintainState: false,
         child: FloatingActionButton(
-          backgroundColor: Colors.purple,
+          backgroundColor: Colors.deepPurpleAccent,
             onPressed: () async {
               Fluttertoast.showToast(
                   msg: "Choose an epub file to open",
@@ -512,7 +512,7 @@ class _myPageState extends State<myPage> {
                     Padding(padding: EdgeInsets.symmetric(vertical: 5.0)),
                     Text("You don't have any Downloaded Books :/\nCheck out the explore page to download some", textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
                     Spacer(),
-                    Text("Already downloaded?\nRefresh the page by dragging from the top", textAlign: TextAlign.center),
+                    Text("Already downloaded?\nSwipe to Refresh", textAlign: TextAlign.center),
                   ],
                 ),
               ),
@@ -613,7 +613,7 @@ class _myPageState extends State<myPage> {
                     double containerHeight = expanded2 ? MediaQuery.of(context).size.height * len
                         : MediaQuery.of(context).size.height * 0.30;
 
-
+                    if(snapshot.data.docs.length > 0)
                     return GestureDetector(
                       onTap: () {
                         print("Tapped");
@@ -690,6 +690,13 @@ class _myPageState extends State<myPage> {
                         ),
                       ),
                     );
+                    else
+                      return SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        child: Center(
+                          child: Text("Want to Read list is empty"),
+                        ),
+                      );
                   })
               : Center(child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -372,7 +372,7 @@ class _mainHomePageState extends State<mainHomePage> {
               pinned: true,
               snap: false,
               floating: true,
-              expandedHeight: _searchVisible ? 200.0 : 140.0,
+              expandedHeight: _searchVisible ? 180.0 : 120.0,
               actions: [
                 IconButton(
                     icon: Icon(Icons.search),
@@ -410,17 +410,18 @@ class _mainHomePageState extends State<mainHomePage> {
                               onFilterChanged();
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              padding: const EdgeInsets.symmetric(vertical: 6.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.filter_list, color: Colors.white,),
-                                  Text("Filter", style: TextStyle(fontSize: 20, color: Colors.white),),
+                                  Icon(Icons.filter_list, color: _theme.darkTheme ? Colors.white : Colors.black),
+                                  Padding(padding: EdgeInsets.symmetric(horizontal: 5)),
+                                  Text("Filter", style: TextStyle(fontSize: 20, color: _theme.darkTheme ? Colors.white : Colors.black),),
                                 ],
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.purple,
+                              backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5
 
@@ -433,17 +434,18 @@ class _mainHomePageState extends State<mainHomePage> {
                               onSortChanged();
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              padding: const EdgeInsets.symmetric(vertical: 6.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.sort, color: Colors.white,),
-                                  Text("Sort", style: TextStyle(fontSize: 20, color: Colors.white),),
+                                  Icon(Icons.sort, color: _theme.darkTheme ? Colors.white : Colors.black),
+                                  Padding(padding: EdgeInsets.symmetric(horizontal: 5)),
+                                  Text("Sort", style: TextStyle(fontSize: 20, color: _theme.darkTheme ? Colors.white : Colors.black),),
                                 ],
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.purple,
+                              backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5,
 
