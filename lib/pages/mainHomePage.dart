@@ -27,7 +27,7 @@ class mainHomePage extends StatefulWidget {
   _mainHomePageState createState() => _mainHomePageState();
 }
 
-class _mainHomePageState extends State<mainHomePage> {
+class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMixin{
   // booksList is origianl list, searchBooksList is the list after filtering and/or sorting
   List<Books> booksList = [], searchBooksList=[];
   bool _loading = true;
@@ -70,7 +70,7 @@ class _mainHomePageState extends State<mainHomePage> {
 
   DateTime now = DateTime.now();
 
-
+  int _size = 50;
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -195,6 +195,7 @@ class _mainHomePageState extends State<mainHomePage> {
         firestoreInstance.collection("users").doc(firebaseUser.uid).collection("saved").get().then((querySnapshot){
           querySnapshot.docs.forEach((element1) {
             print(element1.data()['name']);
+            print(searchBooksList[bookIndexSelected].name);
             if(element1.data()['name'] == searchBooksList[bookIndexSelected].name)
               return true;
           });
@@ -208,7 +209,8 @@ class _mainHomePageState extends State<mainHomePage> {
   Future<void> saveBook() async {
     print("In saveBook()");
     var firebaseUser = FirebaseAuth.instance.currentUser;
-    if(!await checkIfAlreadySaved()) {
+    bool check = await checkIfAlreadySaved();
+    if(!check) {
       print("Saving");
       firestoreInstance
           .collection("users")
@@ -471,11 +473,12 @@ class _mainHomePageState extends State<mainHomePage> {
                  else if(searchBooksList[index].description.length>=1500)
                    len=1.2;
                  double containerHeight = searchBooksList[index].expanded ? 1000 * len
-                     : 1000 * 0.30;
+                     : 1000 * 0.25;
                  return GestureDetector(
                    onTap: () {
                      setState(() {
                        searchBooksList[index].expanded = !searchBooksList[index].expanded;
+
                      });
                    },
                    child: Card(
@@ -483,15 +486,26 @@ class _mainHomePageState extends State<mainHomePage> {
                      child: Padding(
                        padding: const EdgeInsets.symmetric(vertical: 10.0),
                        child: AnimatedContainer(
+                         height: containerHeight,
                          curve: Curves.easeOut,
                          duration: Duration(milliseconds: 400),
-                         height: containerHeight,
+                         //height: containerHeight,
                          child: Row(
                            children: [
                              Padding(padding: EdgeInsets.only(left: 5)),
-                             Image(
-                               image: AssetImage("assets/BookCover.png"),
-                               width: 100,
+                             Stack(
+                               children: [
+                                 Align(
+                                   alignment: Alignment.center,
+                                   child: Image(
+                                     image: AssetImage("assets/BookCover.png"),
+                                     width: 100,
+                                   ),
+                                 ),
+                                 Align(
+                                   alignment: Alignment.center,
+                                     child: Text("  Couldn't Load\n  Cover Image", textAlign: TextAlign.center, style: TextStyle(color: Colors.white),)),
+                               ],
                              ),
                              Padding(padding: EdgeInsets.only(left: 15)),
                              Expanded(
@@ -504,7 +518,7 @@ class _mainHomePageState extends State<mainHomePage> {
                                      Expanded(
                                          child: Text(
                                            '\n${searchBooksList[index].description}',
-                                           overflow: !searchBooksList[index].expanded ? TextOverflow.ellipsis : TextOverflow.ellipsis,
+                                           overflow: TextOverflow.ellipsis,
                                            maxLines: searchBooksList[index].expanded ? 50 : 7,
                                          )
                                      ),
