@@ -2,6 +2,7 @@ import 'package:books_app/styles/color_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,8 @@ class _SettingsPageState extends State<SettingsPage> {
   String passText;
   int i=0;
   final firestoreInstance = FirebaseFirestore.instance;
+  final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
+  var databaseData;
 
   Future<void> getScrollDirection() async {
     final prefs = await SharedPreferences.getInstance();
@@ -53,6 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
     bool isSwitched = _themeChanger.darkTheme;
     String dropdownValue;
     isSwitched ? dropdownValue = 'Dark' : dropdownValue = 'Light';
+
 
     return Scaffold(
       appBar: AppBar(
@@ -105,6 +109,18 @@ class _SettingsPageState extends State<SettingsPage> {
             title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
             trailing: Icon(Icons.navigate_next),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
+          ),
+          Divider(thickness: 3,),
+          ListTile(
+            title: Text("Test Databse", style: TextStyle(fontSize: 18),),
+            trailing: Icon(Icons.navigate_next),
+            onTap: () async {
+              DatabaseReference db = FirebaseDatabase.instance.reference().child("results");
+              db.once().then((DataSnapshot snapshot){
+                //Map<dynamic, dynamic> values = snapshot.value;
+                print(snapshot.value);
+              });
+            }
           ),
           Divider(thickness: 3,),
           Spacer(),

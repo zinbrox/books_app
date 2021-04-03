@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:books_app/styles/color_styles.dart';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -72,6 +73,8 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
 
   int _size = 50;
 
+  final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
+
   Future<void> showFiles() async {
     print("In showFiles");
     Books book;
@@ -84,6 +87,9 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     for(var i in categories) {
       selectedCheck.add(false);
     }
+
+    var databaseData;
+
 
     for (var item in result.items) {
       firebase_storage.FullMetadata metadata = await firebase_storage
@@ -120,6 +126,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     }
     now=DateTime.now();
     print(now);
+    print(databaseData);
 
     /*
     // Sort the books according to Time Created (time added to cloud server)
@@ -188,7 +195,8 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
   }
 
   // Check if File is already saved in Want to Read
-  Future<bool> checkIfAlreadySaved() async {
+  Future<void> checkIfAlreadySaved() async {
+    int i=0;
     var firebaseUser = FirebaseAuth.instance.currentUser;
     await firestoreInstance.collection("users").get().then((querySnapshot){
       querySnapshot.docs.forEach((element) {
@@ -197,20 +205,24 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
             print(element1.data()['name']);
             print(searchBooksList[bookIndexSelected].name);
             if(element1.data()['name'] == searchBooksList[bookIndexSelected].name)
-              return true;
+              {
+                print("Found");
+                if(i>0) {
+                    element1.reference.delete();
+                }
+                i++;
+              }
           });
         });
       });
     });
-    return false;
   }
 
   // Save Book to Want to Read if it isn't already there
   Future<void> saveBook() async {
     print("In saveBook()");
     var firebaseUser = FirebaseAuth.instance.currentUser;
-    bool check = await checkIfAlreadySaved();
-    if(!check) {
+    checkIfAlreadySaved();
       print("Saving");
       firestoreInstance
           .collection("users")
@@ -230,15 +242,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
             timeInSecForIosWeb: 1,
             fontSize: 16.0);
       });
-    }
-    else {
-      Fluttertoast.showToast(
-          msg: "Book Already Exists in Want to Read",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          fontSize: 16.0);
-    }
+
   }
 
   // Search books based on the input. searchBooksList only contains those books which have searched keyword in it
