@@ -8,6 +8,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+class bookCover {
+  String title, author, imageURL;
+  bookCover({this.title, this.author, this.imageURL});
+}
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -21,7 +26,7 @@ class _SettingsPageState extends State<SettingsPage> {
   int i=0;
   final firestoreInstance = FirebaseFirestore.instance;
   final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
-  var databaseData;
+  List<bookCover> bookCoverList = [];
 
   Future<void> getScrollDirection() async {
     final prefs = await SharedPreferences.getInstance();
@@ -112,14 +117,22 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Divider(thickness: 3,),
           ListTile(
-            title: Text("Test Databse", style: TextStyle(fontSize: 18),),
+            title: Text("Test Database", style: TextStyle(fontSize: 18),),
             trailing: Icon(Icons.navigate_next),
             onTap: () async {
-              DatabaseReference db = FirebaseDatabase.instance.reference().child("results");
-              db.once().then((DataSnapshot snapshot){
-                //Map<dynamic, dynamic> values = snapshot.value;
-                print(snapshot.value);
+              await databaseRef.child("results").once().then((DataSnapshot snapshot) {
+                for(var val in snapshot.value) {
+                  bookCover cover;
+                  cover = new bookCover(
+                    title: val['Book-Title'].runtimeType=="String" ? val['Book-Title'] : null,
+                    author: val['Book-Author'].runtimeType=="String" ? val['Book-Title'] : null,
+                    imageURL: val['Image-URL-L'].runtimeType=="String" ? val['Book-Title'] : null,
+                  );
+                  bookCoverList.add(cover);
+                }
+                //print('Data : ${snapshot.value}');
               });
+              print(bookCoverList.length);
             }
           ),
           Divider(thickness: 3,),

@@ -22,6 +22,11 @@ class Books {
   Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
 }
 
+class bookCover {
+  String title, author, imageURL;
+  bookCover({this.title, this.author, this.imageURL});
+}
+
 
 class mainHomePage extends StatefulWidget {
   @override
@@ -74,6 +79,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
   int _size = 50;
 
   final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
+  List<bookCover> bookCoverList = [];
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -88,7 +94,20 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
       selectedCheck.add(false);
     }
 
-    var databaseData;
+    // GETTING BOOK COVER INFO
+    await databaseRef.child("results").once().then((DataSnapshot snapshot) {
+      for(var val in snapshot.value) {
+        bookCover cover;
+        cover = new bookCover(
+          title: val['Book-Title'].runtimeType=="String" ? val['Book-Title'] : null,
+          author: val['Book-Author'].runtimeType=="String" ? val['Book-Title'] : null,
+          imageURL: val['Image-URL-L'].runtimeType=="String" ? val['Book-Title'] : null,
+        );
+        bookCoverList.add(cover);
+      }
+      //print('Data : ${snapshot.value}');
+    });
+    print(bookCoverList.length);
 
 
     for (var item in result.items) {
@@ -126,7 +145,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     }
     now=DateTime.now();
     print(now);
-    print(databaseData);
 
     /*
     // Sort the books according to Time Created (time added to cloud server)
