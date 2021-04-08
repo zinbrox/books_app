@@ -13,19 +13,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
-  String name, title, author, description, genre;
+  String name, title, author, description, genre, imgURL;
   double size;
   DateTime timeCreated;
   //expanded- Whether the Animated Container is expanded or now, downloadExists - to check whether the shown book is already downloaded or not
   bool expanded, downloadExists;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists, this.imgURL});
 }
 
+/*
 class bookCover {
   String title, author, imageURL;
   bookCover({this.title, this.author, this.imageURL});
 }
+
+ */
 
 
 class mainHomePage extends StatefulWidget {
@@ -79,7 +82,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
   int _size = 50;
 
   final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
-  List<bookCover> bookCoverList = [];
+  //List<bookCover> bookCoverList = [];
 
   Future<void> showFiles() async {
     print("In showFiles");
@@ -95,6 +98,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     }
 
     // GETTING BOOK COVER INFO
+    /*
     await databaseRef.child("results").once().then((DataSnapshot snapshot) {
       for(var val in snapshot.value) {
         bookCover cover;
@@ -104,13 +108,17 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
           imageURL: val['Image-URL-L'].runtimeType=="String" ? val['Book-Title'] : null,
         );
         bookCoverList.add(cover);
+        print(val['Book-Title']);
       }
       //print('Data : ${snapshot.value}');
     });
     print(bookCoverList.length);
+    String imageURL;
+     */
 
 
     for (var item in result.items) {
+
       firebase_storage.FullMetadata metadata = await firebase_storage
           .FirebaseStorage.instance
           .ref('${item.fullPath}')
@@ -132,6 +140,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
         timeCreated: metadata.timeCreated,
         expanded: false,
           downloadExists: downloadExists,
+          //imgURL: imageURL,
       );
       booksList.add(book);
       // Sort the books according to Time Created (time added to cloud server)
@@ -391,7 +400,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
       body: CustomScrollView(
           slivers: <Widget>[
             SliverAppBar(
-              title: Text("Bibliotium"),
+              title: Text("Bibliotium", style: TextStyle(fontSize: 25)),
               automaticallyImplyLeading: false,
               pinned: true,
               snap: false,
@@ -438,14 +447,15 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.filter_list, color: _theme.darkTheme ? Colors.white : Colors.black),
+                                  Icon(Icons.filter_list, color: Colors.white),
                                   Padding(padding: EdgeInsets.symmetric(horizontal: 5)),
-                                  Text("Filter", style: TextStyle(fontSize: 20, color: _theme.darkTheme ? Colors.white : Colors.black),),
+                                  Text("Filter", style: TextStyle(fontSize: 20, color: Colors.white),),
                                 ],
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
+                              backgroundColor: Colors.redAccent.shade700,
+                              //backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5
 
@@ -462,14 +472,15 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.sort, color: _theme.darkTheme ? Colors.white : Colors.black),
+                                  Icon(Icons.sort, color: Colors.white),
                                   Padding(padding: EdgeInsets.symmetric(horizontal: 5)),
-                                  Text("Sort", style: TextStyle(fontSize: 20, color: _theme.darkTheme ? Colors.white : Colors.black),),
+                                  Text("Sort", style: TextStyle(fontSize: 20, color: Colors.white),),
                                 ],
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
+                              backgroundColor: Colors.redAccent.shade700,
+                              //backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5,
 
@@ -494,8 +505,9 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                    len=1.0;
                  else if(searchBooksList[index].description.length>=1500)
                    len=1.2;
-                 double containerHeight = searchBooksList[index].expanded ? 1000 * len
-                     : 1000 * 0.25;
+
+                 double containerHeight = searchBooksList[index].expanded ? 1000 * len : 1000 * 0.25;
+                 //double containerHeight = Theme.of(context).textTheme.headline1.fontSize * 2.1;
                  return GestureDetector(
                    onTap: () {
                      setState(() {
@@ -508,10 +520,15 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                      child: Padding(
                        padding: const EdgeInsets.symmetric(vertical: 10.0),
                        child: AnimatedContainer(
+                         /*
+                         constraints: BoxConstraints.expand(
+                           height: searchBooksList[index].expanded ? double.infinity : 300,
+                         ),
+
+                          */
                          height: containerHeight,
                          curve: Curves.easeOut,
                          duration: Duration(milliseconds: 400),
-                         //height: containerHeight,
                          child: Row(
                            children: [
                              Padding(padding: EdgeInsets.only(left: 5)),
@@ -519,10 +536,11 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                                children: [
                                  Align(
                                    alignment: Alignment.center,
+                                   //child: searchBooksList[index].imgURL == "" ?
                                    child: Image(
                                      image: AssetImage("assets/BookCover.png"),
                                      width: 100,
-                                   ),
+                                   )
                                  ),
                                  Align(
                                    alignment: Alignment.center,
@@ -537,6 +555,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                                    children: [
                                      Text(searchBooksList[index].title),
                                      Text('By ${searchBooksList[index].author}'),
+                                     Text(searchBooksList[index].description.length.toString()),
                                      Expanded(
                                          child: Text(
                                            '\n${searchBooksList[index].description}',

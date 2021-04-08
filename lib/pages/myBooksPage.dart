@@ -397,7 +397,7 @@ class _myPageState extends State<myPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("My Page"),
+            Text("My Page", style: TextStyle(fontSize: 25)),
             DropdownButton<String>(
               value: dropdownValue,
               onChanged: (String newValue) {
@@ -423,7 +423,7 @@ class _myPageState extends State<myPage> {
         visible: fabIsVisible,
         maintainState: false,
         child: FloatingActionButton(
-          backgroundColor: Colors.pinkAccent,
+          backgroundColor: Colors.pinkAccent.shade400,
             onPressed: () async {
               Fluttertoast.showToast(
                   msg: "Choose an epub file to open",

@@ -66,7 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Settings"),
+        title: Text("Settings", style: TextStyle(fontSize: 25),),
       ),
       body: Center(child: Column(
         children: <Widget>[
@@ -114,26 +114,6 @@ class _SettingsPageState extends State<SettingsPage> {
             title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
             trailing: Icon(Icons.navigate_next),
             onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
-          ),
-          Divider(thickness: 3,),
-          ListTile(
-            title: Text("Test Database", style: TextStyle(fontSize: 18),),
-            trailing: Icon(Icons.navigate_next),
-            onTap: () async {
-              await databaseRef.child("results").once().then((DataSnapshot snapshot) {
-                for(var val in snapshot.value) {
-                  bookCover cover;
-                  cover = new bookCover(
-                    title: val['Book-Title'].runtimeType=="String" ? val['Book-Title'] : null,
-                    author: val['Book-Author'].runtimeType=="String" ? val['Book-Title'] : null,
-                    imageURL: val['Image-URL-L'].runtimeType=="String" ? val['Book-Title'] : null,
-                  );
-                  bookCoverList.add(cover);
-                }
-                //print('Data : ${snapshot.value}');
-              });
-              print(bookCoverList.length);
-            }
           ),
           Divider(thickness: 3,),
           Spacer(),
