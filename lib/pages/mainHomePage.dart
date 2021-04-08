@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:books_app/styles/color_styles.dart';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -13,23 +12,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Books {
-  String name, title, author, description, genre, imgURL;
+  String name, title, author, description, genre;
   double size;
   DateTime timeCreated;
   //expanded- Whether the Animated Container is expanded or now, downloadExists - to check whether the shown book is already downloaded or not
   bool expanded, downloadExists;
 
-  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists, this.imgURL});
+  Books({this.name, this.title, this.author, this.description, this.genre, this.size, this.timeCreated, this.expanded, this.downloadExists});
 }
-
-/*
-class bookCover {
-  String title, author, imageURL;
-  bookCover({this.title, this.author, this.imageURL});
-}
-
- */
-
 
 class mainHomePage extends StatefulWidget {
   @override
@@ -79,11 +69,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
 
   DateTime now = DateTime.now();
 
-  int _size = 50;
-
-  final databaseRef = FirebaseDatabase.instance.reference(); //database reference object
-  //List<bookCover> bookCoverList = [];
-
   Future<void> showFiles() async {
     print("In showFiles");
     Books book;
@@ -96,26 +81,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     for(var i in categories) {
       selectedCheck.add(false);
     }
-
-    // GETTING BOOK COVER INFO
-    /*
-    await databaseRef.child("results").once().then((DataSnapshot snapshot) {
-      for(var val in snapshot.value) {
-        bookCover cover;
-        cover = new bookCover(
-          title: val['Book-Title'].runtimeType=="String" ? val['Book-Title'] : null,
-          author: val['Book-Author'].runtimeType=="String" ? val['Book-Title'] : null,
-          imageURL: val['Image-URL-L'].runtimeType=="String" ? val['Book-Title'] : null,
-        );
-        bookCoverList.add(cover);
-        print(val['Book-Title']);
-      }
-      //print('Data : ${snapshot.value}');
-    });
-    print(bookCoverList.length);
-    String imageURL;
-     */
-
 
     for (var item in result.items) {
 
@@ -140,7 +105,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
         timeCreated: metadata.timeCreated,
         expanded: false,
           downloadExists: downloadExists,
-          //imgURL: imageURL,
       );
       booksList.add(book);
       // Sort the books according to Time Created (time added to cloud server)
@@ -149,18 +113,13 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
       setState(() {
         _loading=false;
       });
-      now=DateTime.now();
-      print(now);
+
+      //now=DateTime.now();
+      //print(now);
     }
-    now=DateTime.now();
-    print(now);
+    //now=DateTime.now();
+    //print(now);
 
-    /*
-    // Sort the books according to Time Created (time added to cloud server)
-    booksList.sort((b,a) => a.timeCreated.compareTo(b.timeCreated));
-    searchBooksList = booksList;
-
-     */
 
     setState(() {
       _loading = false;
@@ -187,7 +146,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
         File('${appDocDir.path}/${searchBooksList[bookIndexSelected].name}');
     Directory downloadsDirectory =
         await DownloadsPathProvider.downloadsDirectory;
-    //print(downloadsDirectory);
+
     print(appDocDir.path);
     await firebase_storage.FirebaseStorage.instance
         .ref('books/${searchBooksList[bookIndexSelected].name}')
@@ -295,7 +254,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                         title: Text(categories[index]),
                         value: selectedCheck[index],
                         onChanged: (bool value) {
-                          //print("Value: $value");
                           if (value)
                             selectedCategories.add(categories[index]);
                           else
@@ -303,8 +261,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                           setState(() {
                             selectedCheck[index] = value;
                           });
-                          //print("SelectedCheck[index]: ${selectedCheck[index]}");
-                          //print(selectedCategories);
                         });
                   }),
             );
@@ -454,7 +410,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.redAccent.shade700,
+                              backgroundColor: Colors.pinkAccent.shade400,
                               //backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5
@@ -479,7 +435,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.redAccent.shade700,
+                              backgroundColor: Colors.pinkAccent.shade400,
                               //backgroundColor: _theme.darkTheme ? Colors.grey[800] : Colors.grey[50],
                               //side: BorderSide(color: _theme.darkTheme ? Colors.white : Colors.black, width: 1),
                               elevation: 5,
@@ -520,12 +476,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                      child: Padding(
                        padding: const EdgeInsets.symmetric(vertical: 10.0),
                        child: AnimatedContainer(
-                         /*
-                         constraints: BoxConstraints.expand(
-                           height: searchBooksList[index].expanded ? double.infinity : 300,
-                         ),
-
-                          */
                          height: containerHeight,
                          curve: Curves.easeOut,
                          duration: Duration(milliseconds: 400),
@@ -536,7 +486,6 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                                children: [
                                  Align(
                                    alignment: Alignment.center,
-                                   //child: searchBooksList[index].imgURL == "" ?
                                    child: Image(
                                      image: AssetImage("assets/BookCover.png"),
                                      width: 100,
