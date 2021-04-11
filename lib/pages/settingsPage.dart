@@ -146,6 +146,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                             future: _initializeVideoPlayerFuture,
                                             builder: (context, snapshot){
                                               if (snapshot.connectionState == ConnectionState.done) {
+                                                if(_videoController.value.position==_videoController.value.duration){
+                                                  _videoController.initialize();
+                                                }
                                                 return Container(
                                                   height: 300,
                                                   child: AspectRatio(
@@ -162,7 +165,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                             iconSize: 50,
                                             onPressed: (){
                                           setState(() {
-                                            if(_videoController.value.position==_videoController.value.duration){
+                                            if(_videoController.value.position==_videoController.value.duration && !_videoController.value.isInitialized){
                                               _videoController.initialize();
                                             }
                                               _videoController.play();
