@@ -82,12 +82,9 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
       selectedCheck.add(false);
     }
 
-    for (var item in result.items) {
-
-      firebase_storage.FullMetadata metadata = await firebase_storage
-          .FirebaseStorage.instance
-          .ref('${item.fullPath}')
-          .getMetadata();
+    //Get the metadata of each file (in reverse order so that latest uploaded is first to load)
+    for (var item in result.items.reversed) {
+      firebase_storage.FullMetadata metadata = await item.getMetadata();
 
       bool downloadExists=false;
       Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -117,6 +114,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
       //now=DateTime.now();
       //print(now);
     }
+    //print("Done");
     //now=DateTime.now();
     //print(now);
 
@@ -452,7 +450,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                delegate: SliverChildBuilderDelegate((context, index){
                  double len;
                  if(searchBooksList[index].description.length <= 500)
-                   len=0.3;
+                   len=0.35;
                  else if (searchBooksList[index].description.length > 500 && searchBooksList[index].description.length<=750)
                    len = 0.6;
                  else if(searchBooksList[index].description.length > 750 && searchBooksList[index].description.length<=1000)

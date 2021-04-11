@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 
 
 class SettingsPage extends StatefulWidget {
@@ -20,6 +21,10 @@ class _SettingsPageState extends State<SettingsPage> {
   String passText;
   int i=0;
   final firestoreInstance = FirebaseFirestore.instance;
+
+  // For Easteregg
+  VideoPlayerController _videoController;
+  Future<void> _initializeVideoPlayerFuture;
 
   Future<void> getScrollDirection() async {
     final prefs = await SharedPreferences.getInstance();
@@ -41,11 +46,14 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     getScrollDirection();
+    _videoController = VideoPlayerController.asset("assets/YodaCaughtYou.mp4");
+    _initializeVideoPlayerFuture = _videoController.initialize();
   }
 
   @override
   void dispose() {
     super.dispose();
+    _videoController.dispose();
   }
 
   @override
@@ -129,12 +137,47 @@ class _SettingsPageState extends State<SettingsPage> {
                             builder: (BuildContext context){
                               return AlertDialog(
                                 title: Text("Enter Admin Password"),
-                                content: TextFormField(
-                                  controller: _password,
-                                  maxLines: 1,
-                                  onChanged: (value) {
-                                    passText = _password.text;
-                                  },
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Stack(alignment: Alignment.center,
+                                      children: [
+                                        FutureBuilder(
+                                            future: _initializeVideoPlayerFuture,
+                                            builder: (context, snapshot){
+                                              if (snapshot.connectionState == ConnectionState.done) {
+                                                return Container(
+                                                  height: 300,
+                                                  child: AspectRatio(
+                                                    aspectRatio: 1,//_videoController.value.aspectRatio,
+                                                    child: VideoPlayer(_videoController),
+                                                  ),
+                                                );
+                                              } else {
+                                                return Center(child: CircularProgressIndicator());
+                                              }
+                                            }),
+                                        IconButton(
+                                            icon: Icon(Icons.play_arrow),
+                                            iconSize: 50,
+                                            onPressed: (){
+                                          setState(() {
+                                            if(_videoController.value.position==_videoController.value.duration){
+                                              _videoController.initialize();
+                                            }
+                                              _videoController.play();
+                                          });
+                                        })
+                                      ],
+                                    ),
+                                    TextFormField(
+                                      controller: _password,
+                                      maxLines: 1,
+                                      onChanged: (value) {
+                                        passText = _password.text;
+                                      },
+                                    ),
+                                  ],
                                 ),
                                 actions: [
                                   ElevatedButton(
