@@ -55,120 +55,128 @@ class _SettingsPageState extends State<SettingsPage> {
     String dropdownValue;
     isSwitched ? dropdownValue = 'Dark' : dropdownValue = 'Light';
 
+    double height = MediaQuery.of(context).size.height * 0.8;
+
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text("Settings", style: TextStyle(fontSize: 25),),
       ),
-      body: Center(child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text("App Theme", style: TextStyle(fontSize: 18),),
-            trailing: DropdownButton<String>(
-              value: dropdownValue,
-              onChanged: (String newValue){
-                setState((){
-                  dropdownValue = newValue;
-                  newValue=='Dark' ? _themeChanger.darkTheme=true : _themeChanger.darkTheme=false;
-                });
-              },
-              items: <String>['Light','Dark'].map<DropdownMenuItem<String>>((String value){
-                return DropdownMenuItem<String>(value: value, child: Text(value),);
-              }).toList(),
-            ),
-          ),
-          Divider(thickness: 3,),
-          ListTile(
-            title: Text("Reader Theme", style: TextStyle(fontSize: 18),),
-            trailing:  DropdownButton<String>(
-              value: lightMode,
-              onChanged: (String newValue){
-                if(this.mounted) {
-                  setState((){
-                    lightMode=newValue;
-                    changeLightMode(newValue);
-                  });
-                }
-              },
-              items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
-                return DropdownMenuItem<String>(value: value, child: Text(value),);
-              }).toList(),
-            ),
-          ),
-          Divider(thickness: 3,),
-          ListTile(
-            title: Text("Request Books", style: TextStyle(fontSize: 18),),
-            trailing: Icon(Icons.navigate_next),
-            onTap: () => Navigator.pushNamed(context, '/requestsPage'),
-          ),
-          Divider(thickness: 3,),
-          ListTile(
-            title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
-            trailing: Icon(Icons.navigate_next),
-            onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
-          ),
-          Divider(thickness: 3,),
-          Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: (){
-                  i++;
-                  if(i==10) {
-                    i=0;
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context){
-                          return AlertDialog(
-                            title: Text("Enter Admin Password"),
-                            content: TextFormField(
-                              controller: _password,
-                              maxLines: 1,
-                              onChanged: (value) {
-                                passText = _password.text;
-                              },
-                            ),
-                            actions: [
-                              ElevatedButton(
-                                  onPressed: (){
-                                    Navigator.of(context).pop();
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: height,
+          child: Column(
+            children: <Widget>[
+              ListTile(
+                title: Text("App Theme", style: TextStyle(fontSize: 18),),
+                trailing: DropdownButton<String>(
+                  value: dropdownValue,
+                  onChanged: (String newValue){
+                    setState((){
+                      dropdownValue = newValue;
+                      newValue=='Dark' ? _themeChanger.darkTheme=true : _themeChanger.darkTheme=false;
+                    });
+                  },
+                  items: <String>['Light','Dark'].map<DropdownMenuItem<String>>((String value){
+                    return DropdownMenuItem<String>(value: value, child: Text(value),);
+                  }).toList(),
+                ),
+              ),
+              Divider(thickness: 3,),
+              ListTile(
+                title: Text("Reader Theme", style: TextStyle(fontSize: 18),),
+                trailing:  DropdownButton<String>(
+                  value: lightMode,
+                  onChanged: (String newValue){
+                    if(this.mounted) {
+                      setState((){
+                        lightMode=newValue;
+                        changeLightMode(newValue);
+                      });
+                    }
+                  },
+                  items: <String>['Light', 'Dark'].map<DropdownMenuItem<String>>((String value){
+                    return DropdownMenuItem<String>(value: value, child: Text(value),);
+                  }).toList(),
+                ),
+              ),
+              Divider(thickness: 3,),
+              ListTile(
+                title: Text("Request Books", style: TextStyle(fontSize: 18),),
+                trailing: Icon(Icons.navigate_next),
+                onTap: () => Navigator.pushNamed(context, '/requestsPage'),
+              ),
+              Divider(thickness: 3,),
+              ListTile(
+                title: Text("Feedback & Complaints", style: TextStyle(fontSize: 18),),
+                trailing: Icon(Icons.navigate_next),
+                onTap: () => Navigator.pushNamed(context, '/feedbackPage'),
+              ),
+              Divider(thickness: 3,),
+              //MediaQuery.of(context).orientation == Orientation.portrait ? Spacer() : Container(),
+              Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: (){
+                      i++;
+                      if(i==10) {
+                        i=0;
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context){
+                              return AlertDialog(
+                                title: Text("Enter Admin Password"),
+                                content: TextFormField(
+                                  controller: _password,
+                                  maxLines: 1,
+                                  onChanged: (value) {
+                                    passText = _password.text;
                                   },
-                                  child: Text("Cancel")),
-                              ElevatedButton(
-                                  onPressed: () {
-                                    var firebaseUser = FirebaseAuth.instance.currentUser;
-                                    print(firebaseUser.uid);
-                                    firestoreInstance.collection("adminControl").get().then((querySnapshot){
-                                      querySnapshot.docs.forEach((element) {
-                                        if (element.data()['${firebaseUser.uid}'] == true) {
-                                          print("Valid");
-                                          Navigator.pushNamed(context, '/adminPage');
-                                        }
-                                        else {
-                                          print("Invalid");
-                                          Fluttertoast.showToast(
-                                              msg: "You're not an admin",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              timeInSecForIosWeb: 1,
-                                              fontSize: 16.0);
-                                        }
-                                      });
-                                    });
-                                },
-                                  child: Text("Enter")),
-                            ],
-                          );
-                        });
-                  }
-                },
-                  child: Text("zinbrox", style: TextStyle(fontSize: 20, decoration: TextDecoration.overline),)),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                      onPressed: (){
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text("Cancel")),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        var firebaseUser = FirebaseAuth.instance.currentUser;
+                                        print(firebaseUser.uid);
+                                        firestoreInstance.collection("adminControl").get().then((querySnapshot){
+                                          querySnapshot.docs.forEach((element) {
+                                            if (element.data()['${firebaseUser.uid}'] == true) {
+                                              print("Valid");
+                                              Navigator.pushNamed(context, '/adminPage');
+                                            }
+                                            else {
+                                              print("Invalid");
+                                              Fluttertoast.showToast(
+                                                  msg: "You're not an admin",
+                                                  toastLength: Toast.LENGTH_SHORT,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  timeInSecForIosWeb: 1,
+                                                  fontSize: 16.0);
+                                            }
+                                          });
+                                        });
+                                    },
+                                      child: Text("Enter")),
+                                ],
+                              );
+                            });
+                      }
+                    },
+                      child: Text("zinbrox", style: TextStyle(fontSize: 20, decoration: TextDecoration.overline),)),
+                ],
+              )
             ],
-          )
-        ],
-      ),),
+          ),
+        ),
+      ),
     );
   }
 }
