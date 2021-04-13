@@ -29,7 +29,7 @@ class mainHomePage extends StatefulWidget {
 class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMixin{
   // booksList is origianl list, searchBooksList is the list after filtering and/or sorting
   List<Books> booksList = [], searchBooksList=[];
-  bool _loading = true;
+  bool _loading = true, _BookLoading=true;
   int bookIndexSelected; // Book index Selected for download
   final firestoreInstance = FirebaseFirestore.instance;
 
@@ -40,7 +40,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
   List<String> categories = [
     'Art',
     'Business',
-    'Children'
+    'Children',
     'Classics',
     'Crime',
     'Fantasy',
@@ -48,7 +48,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
     'History',
     'Horror',
     'Humour',
-    'Memoir'
+    'Memoir',
     'Mystery',
     'Nonfiction',
     'Poetry',
@@ -120,7 +120,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
 
 
     setState(() {
-      _loading = false;
+      _BookLoading = false;
     });
   }
 
@@ -361,6 +361,9 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
               floating: true,
               expandedHeight: _searchVisible ? 180.0 : 120.0,
               actions: [
+                Visibility(
+                  visible: _BookLoading,
+                    child: Center(child: CircularProgressIndicator())),
                 IconButton(
                     icon: Icon(Icons.search),
                     onPressed: (){
@@ -368,7 +371,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                         _searchVisible=!_searchVisible;
                       });
 
-                    })
+                    }),
               ],
               flexibleSpace: FlexibleSpaceBar(
                 background: Column(
@@ -502,7 +505,7 @@ class _mainHomePageState extends State<mainHomePage> with TickerProviderStateMix
                                    children: [
                                      Text(searchBooksList[index].title),
                                      Text('By ${searchBooksList[index].author}'),
-                                     Text(searchBooksList[index].description.length.toString()),
+                                     //Text(searchBooksList[index].description.length.toString()),
                                      Expanded(
                                          child: Text(
                                            '\n${searchBooksList[index].description}',

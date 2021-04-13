@@ -67,6 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text("Settings", style: TextStyle(fontSize: 25),),
@@ -137,50 +138,52 @@ class _SettingsPageState extends State<SettingsPage> {
                             builder: (BuildContext context){
                               return AlertDialog(
                                 title: Text("Enter Admin Password"),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Stack(alignment: Alignment.center,
-                                      children: [
-                                        FutureBuilder(
-                                            future: _initializeVideoPlayerFuture,
-                                            builder: (context, snapshot){
-                                              if (snapshot.connectionState == ConnectionState.done) {
-                                                if(_videoController.value.position==_videoController.value.duration){
-                                                  _videoController.initialize();
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Stack(alignment: Alignment.center,
+                                        children: [
+                                          FutureBuilder(
+                                              future: _initializeVideoPlayerFuture,
+                                              builder: (context, snapshot){
+                                                if (snapshot.connectionState == ConnectionState.done) {
+                                                  if(_videoController.value.position==_videoController.value.duration){
+                                                    _videoController.initialize();
+                                                  }
+                                                  return Container(
+                                                    height: 300,
+                                                    child: AspectRatio(
+                                                      aspectRatio: 1,//_videoController.value.aspectRatio,
+                                                      child: VideoPlayer(_videoController),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  return Center(child: CircularProgressIndicator());
                                                 }
-                                                return Container(
-                                                  height: 300,
-                                                  child: AspectRatio(
-                                                    aspectRatio: 1,//_videoController.value.aspectRatio,
-                                                    child: VideoPlayer(_videoController),
-                                                  ),
-                                                );
-                                              } else {
-                                                return Center(child: CircularProgressIndicator());
+                                              }),
+                                          IconButton(
+                                              icon: Icon(Icons.play_arrow),
+                                              iconSize: 50,
+                                              onPressed: (){
+                                            setState(() {
+                                              if(_videoController.value.position==_videoController.value.duration){
+                                                _videoController.initialize();
                                               }
-                                            }),
-                                        IconButton(
-                                            icon: Icon(Icons.play_arrow),
-                                            iconSize: 50,
-                                            onPressed: (){
-                                          setState(() {
-                                            if(_videoController.value.position==_videoController.value.duration && !_videoController.value.isInitialized){
-                                              _videoController.initialize();
-                                            }
-                                              _videoController.play();
-                                          });
-                                        })
-                                      ],
-                                    ),
-                                    TextFormField(
-                                      controller: _password,
-                                      maxLines: 1,
-                                      onChanged: (value) {
-                                        passText = _password.text;
-                                      },
-                                    ),
-                                  ],
+                                                _videoController.play();
+                                            });
+                                          })
+                                        ],
+                                      ),
+                                      TextFormField(
+                                        controller: _password,
+                                        maxLines: 1,
+                                        onChanged: (value) {
+                                          passText = _password.text;
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 actions: [
                                   ElevatedButton(

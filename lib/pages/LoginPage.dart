@@ -17,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> googleCall() async {
 
       await Firebase.initializeApp();
-
       User user = FirebaseAuth.instance.currentUser;
       if(user!=null) {
         Navigator.of(context).push(
@@ -33,6 +32,7 @@ class _LoginPageState extends State<LoginPage> {
           _buttonVisible=true;
         });
       }
+
 
 
   }
