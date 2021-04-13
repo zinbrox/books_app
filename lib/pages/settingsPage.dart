@@ -65,7 +65,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     double height = MediaQuery.of(context).size.height * 0.8;
 
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
