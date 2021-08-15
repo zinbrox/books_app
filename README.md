@@ -1,6 +1,6 @@
 # books_app
 
-A Flutter Books App
+A Fltter app to browse through books, download them and read them through an integrated MOBI reader
 
 ## Getting Started
 
