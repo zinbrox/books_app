@@ -1,7 +1,7 @@
 # Bibliotium Books App
 A Fltter app to browse through a books library, with the ability to download and read them through an integrated MOBI reader
 
-Browse books uploaded in Google Cloud server along with the books' details with fluid animation to improve user interface
+Browse books uploaded in Google Cloud server along with the books' details with fluid animation to improve user interface  
 <img src = "https://user-images.githubusercontent.com/53508807/130360828-679ab10a-7c80-469d-a2fc-39c61c3fef82.gif" width="300">
 
 (Note: I added book details in the file metadata to make it simpler to load, with the expense of loading time. To get faster laoding time, it is recommended to host the details in a separate database)
